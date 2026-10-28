@@ -10,6 +10,7 @@ import {
   type Campaign, type Channel, type DeliveryState, type Guest, type Step, CHANNEL_LABEL, campaignTotals, fmt, fmtDate, getCampaign, money, pct, sampleGuests, stepTotals,
 } from "@/lib/campaigns";
 import { cn } from "@/lib/utils";
+import { HOME_SEARCH } from "@/routes/index";
 
 export const Route = createFileRoute("/campaigns/$id")({
   loader: ({ params }) => {
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/campaigns/$id")({
   notFoundComponent: () => (
     <div className="p-10">
       <p className="font-medium">Campaign not found.</p>
-      <Link to="/" className="mt-2 inline-block text-sm text-primary hover:underline">Back to campaigns</Link>
+      <Link to="/" search={HOME_SEARCH} className="mt-2 inline-block text-sm text-primary hover:underline">Back to campaigns</Link>
     </div>
   ),
   component: ResultsPage,
@@ -46,7 +47,7 @@ function ResultsPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-6 lg:px-10">
       <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link to="/" className="hover:text-primary">Drip Campaigns</Link>
+        <Link to="/" search={HOME_SEARCH} className="hover:text-primary">Drip Campaigns</Link>
         <span aria-hidden>/</span>
         <span className="text-foreground">{c.name}</span>
       </nav>
@@ -62,7 +63,7 @@ function ResultsPage() {
           </p>
         </div>
         <Button variant="outline" asChild>
-          <Link to="/"><ChevronLeft /> Back to campaigns</Link>
+          <Link to="/" search={HOME_SEARCH}><ChevronLeft /> Back to campaigns</Link>
         </Button>
       </header>
 
@@ -107,11 +108,11 @@ function SummaryItem({ label, value, hint }: { label: string; value: string; hin
 /* ---------------- Message performance ---------------- */
 
 function MessagePerformance({ c }: { c: Campaign }) {
-  const [stepId, setStepId] = useState(c.steps[0].id);
+  const [stepId, setStepId] = useState(c.steps[0]!.id);
   const step = c.steps.find((s) => s.id === stepId)!;
   const channels = Object.keys(step.channels) as Channel[];
-  const [chSel, setCh] = useState<Channel>(channels[0]);
-  const ch = channels.includes(chSel) ? chSel : channels[0];
+  const [chSel, setCh] = useState<Channel>(channels[0]!);
+  const ch = channels.includes(chSel) ? chSel : channels[0]!;
   const stats = step.channels[ch]!;
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const tot = stepTotals(step);
@@ -176,7 +177,7 @@ function MessagePerformance({ c }: { c: Campaign }) {
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-x-6 gap-y-4 border-y bg-card px-5 py-4 sm:grid-cols-4 md:grid-cols-8">
+          <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-4 border-y bg-card px-5 py-4 sm:grid-cols-4 lg:grid-cols-8 xl:grid-cols-4">
             <Metric label="Eligible guests" value={fmt(step.eligible)} hint="Guests" />
             <Metric label="Sent" value={fmt(stats.sent)} hint="Messages" />
             <Metric label="Delivered" value={fmt(stats.delivered)} />
@@ -341,7 +342,7 @@ function Insights({ c, step }: { c: Campaign; step: Step }) {
   const tot = stepTotals(step);
   if (tot.clicks !== null) items.push(`This step generated ${fmt(tot.clicks)} tracked clicks across all channels.`);
   if (step.id === "initial" || items.length === 0) return items.length ? <InsightList items={items} /> : null;
-  const prev = c.steps[c.steps.indexOf(step) - 1];
+  const prev = c.steps[c.steps.indexOf(step) - 1]!;
   items.push(`Eligibility changed from ${fmt(prev.eligible)} (${prev.name}) to ${fmt(step.eligible)} based on stop conditions.`);
   return <InsightList items={items} />;
 }
@@ -376,7 +377,7 @@ function GuestActivity({ c }: { c: Campaign }) {
     ...(tracked ? [{ k: "clicked", l: "Clicked", fn: (g: Guest) => g.clicked }, { k: "booked", l: "Booked", fn: (g: Guest) => g.booked }] : []),
     { k: "failed", l: "Delivery failed", fn: (g) => Object.values(g.stepStatus).includes("failed") },
   ];
-  const active = filters.find((f) => f.k === filter) ?? filters[0];
+  const active = filters.find((f) => f.k === filter) ?? filters[0]!;
   const rows = guests.filter(active.fn);
   const ts = (s?: string) => (s ? new Date(s).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—");
 
@@ -424,7 +425,7 @@ function GuestActivity({ c }: { c: Campaign }) {
                     <div className="text-xs text-muted-foreground">{g.contact}</div>
                   </td>
                   <td className="px-3 py-2 capitalize">{g.channel}</td>
-                  {c.steps.map((s) => <td key={s.id} className={cn("px-3 py-2", stateCls[g.stepStatus[s.id]])}>{stateLabel[g.stepStatus[s.id]]}</td>)}
+                  {c.steps.map((s) => { const st = g.stepStatus[s.id] ?? "not_sent"; return <td key={s.id} className={cn("px-3 py-2", stateCls[st])}>{stateLabel[st]}</td>; })}
                   {tracked && <td className="px-3 py-2">{g.clicked ? "Yes" : "No"}</td>}
                   {tracked && <td className="px-3 py-2">{g.booked ? <span className="font-medium text-success">Booked</span> : "No"}</td>}
                   <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">{ts(g.lastActivity)}</td>

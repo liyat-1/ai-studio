@@ -15,14 +15,16 @@ import {
 } from "@/lib/campaigns";
 import { cn } from "@/lib/utils";
 
-type Search = { q?: string; status?: CampaignStatus | "all"; channel?: ChannelStrategy | "all"; view?: "card" | "table" };
+type Search = { q: string; status: CampaignStatus | "all"; channel: ChannelStrategy | "all"; view: "card" | "table" };
+/** Defaults for links pointing back at the campaigns list. */
+export const HOME_SEARCH: Search = { q: "", status: "all", channel: "all", view: "card" };
 
 export const Route = createFileRoute("/")({
-  validateSearch: (s: Record<string, unknown>): Search => ({
-    q: typeof s.q === "string" && s.q ? s.q : undefined,
-    status: (s.status as Search["status"]) || undefined,
-    channel: (s.channel as Search["channel"]) || undefined,
-    view: s.view === "table" ? "table" : undefined,
+  validateSearch: ({ q, status, channel, view }: Record<string, unknown>): Search => ({
+    q: typeof q === "string" ? q : "",
+    status: (status as Search["status"]) || "all",
+    channel: (channel as Search["channel"]) || "all",
+    view: view === "table" ? "table" : "card",
   }),
   head: () => ({
     meta: [
@@ -82,18 +84,18 @@ function CampaignsPage() {
             aria-label="Search campaigns"
             placeholder="Search campaigns"
             className="bg-card pl-8"
-            value={search.q ?? ""}
-            onChange={(e) => set({ q: e.target.value || undefined })}
+            value={search.q}
+            onChange={(e) => set({ q: e.target.value })}
           />
         </div>
-        <Select value={search.status ?? "all"} onValueChange={(v) => set({ status: v === "all" ? undefined : (v as CampaignStatus) })}>
+        <Select value={search.status} onValueChange={(v) => set({ status: v as Search["status"] })}>
           <SelectTrigger className="w-40 bg-card" aria-label="Status filter"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
             {Object.entries(STATUS_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={search.channel ?? "all"} onValueChange={(v) => set({ channel: v === "all" ? undefined : (v as ChannelStrategy) })}>
+        <Select value={search.channel} onValueChange={(v) => set({ channel: v as Search["channel"] })}>
           <SelectTrigger className="w-52 bg-card" aria-label="Channel filter"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All channels</SelectItem>
@@ -105,7 +107,7 @@ function CampaignsPage() {
             <button
               key={v}
               aria-pressed={view === v}
-              onClick={() => set({ view: v === "table" ? "table" : undefined })}
+              onClick={() => set({ view: v })}
               className={cn("flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-sm", view === v ? "bg-primary-soft font-medium text-primary" : "text-muted-foreground hover:text-foreground")}
             >
               <Icon className="size-4" strokeWidth={1.75} /> {label}
@@ -119,7 +121,7 @@ function CampaignsPage() {
       {filtered.length === 0 ? (
         <div className="mt-3 border border-dashed bg-card px-6 py-16 text-center">
           <p className="font-medium">No campaigns match these filters</p>
-          <Button variant="outline" className="mt-4" onClick={() => navigate({ search: { view: search.view }, replace: true })}>Clear filters</Button>
+          <Button variant="outline" className="mt-4" onClick={() => navigate({ search: { q: "", status: "all", channel: "all", view: search.view }, replace: true })}>Clear filters</Button>
         </div>
       ) : view === "card" ? (
         <ul className="mt-3 flex flex-col gap-3">

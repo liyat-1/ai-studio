@@ -18,6 +18,6 @@ describe("campaign reporting integrity", () => {
 
   it("untracked clicks stay null instead of zero", () => {
     const t = campaignTotals(getCampaign("fall-returning")!);
-    expect(t.steps[1].clicks).toBeNull();
+    expect(t.steps[1]!.clicks).toBeNull();
   });
 });
