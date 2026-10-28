@@ -11,7 +11,8 @@ import {
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FollowUpChip, PersonAvatar, ReachBar, StatusLabel, VolumeInfo } from "@/components/campaign-bits";
+import { CampaignIcon, FollowUpChip, PersonAvatar, ReachBar, StatusLabel, VolumeInfo } from "@/components/campaign-bits";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ResultsDialog } from "@/components/results-dialog";
 import {
   type Campaign, type CampaignStatus, type ChannelStrategy, CHANNEL_LABEL, STATUS_LABEL, campaignTotals, campaigns as seed, fmt, fmtDate, money,
@@ -62,9 +63,15 @@ function CampaignsPage() {
 
   const actions = {
     test: (c: Campaign) => toast.success(`Test message for “${c.name}” sent to your phone`),
-    clone: (c: Campaign) => {
-      setList((l) => [{ ...c, id: c.id + "-copy-" + l.length, name: c.name + " (copy)", status: "draft", reached: 0, createdAt: "2026-10-28" }, ...l]);
-      toast.success(`Cloned “${c.name}” as a draft`);
+    clone: (c: Campaign, stepId?: string) => {
+      setList((l) => {
+        const step = stepId ? c.steps.find((s) => s.id === stepId) : null;
+        const steps = step
+          ? [{ ...step, id: "initial", name: "Initial message", delay: "Not scheduled", eligible: 0, channels: Object.fromEntries(Object.entries(step.channels).map(([k, v]) => [k, { ...v!, sent: 0, delivered: 0, failed: 0, clicks: null, bookings: null, cost: 0 }])) }]
+          : c.steps;
+        return [{ ...c, id: c.id + "-copy-" + l.length, name: c.name + " (copy)", status: "draft" as const, eligible: step ? 0 : c.eligible, reached: 0, createdAt: "2026-10-28", steps }, ...l];
+      });
+      toast.success(stepId ? `Cloned “${c.name}” — that message is now the initial message of the draft` : `Cloned “${c.name}” as a draft`);
     },
     del: (c: Campaign) => setToDelete(c),
     results: (c: Campaign) => setResultsFor(c),
@@ -136,7 +143,7 @@ function CampaignsPage() {
         <CampaignTable rows={filtered} actions={actions} />
       )}
 
-      <ResultsDialog key={resultsFor?.id ?? "none"} c={resultsFor} onClose={() => setResultsFor(null)} />
+      <ResultsDialog key={resultsFor?.id ?? "none"} c={resultsFor} onClose={() => setResultsFor(null)} onClone={actions.clone} />
 
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
