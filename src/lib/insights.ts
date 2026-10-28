@@ -52,12 +52,52 @@ export interface Insight {
   detail: string;
 }
 
-const hasMedia = (s: Step) => !!s.text?.media || !!s.emailMedia;
-const mediaLabel = (s: Step) =>
-  [s.text?.media && `a ${s.text.media.kind} in the text`, s.emailMedia && `a ${s.emailMedia.kind} in the email`].filter(Boolean).join(" and ");
+const hasMedia = (s: Step, channel?: Channel) =>
+  channel === "email" ? !!s.emailMedia : channel === "text" ? !!s.text?.media : !!s.text?.media || !!s.emailMedia;
+const mediaLabel = (s: Step, channel?: Channel) =>
+  channel === "email"
+    ? s.emailMedia ? `a ${s.emailMedia.kind} in the email` : ""
+    : channel === "text"
+      ? s.text?.media ? `a ${s.text.media.kind} in the text` : ""
+      : [s.text?.media && `a ${s.text.media.kind} in the text`, s.emailMedia && `a ${s.emailMedia.kind} in the email`].filter(Boolean).join(" and ");
 const URGENCY = /(last call|ends|almost gone|final|only \d|today)/i;
+const OFFER = /(\d+%|from \$\d+|save|free|rate)/i;
+const SEASON: [RegExp, string][] = [
+  [/halloween|october|spooky/i, "Halloween"],
+  [/holiday|christmas|festive/i, "the holidays"],
+  [/summer|august|july/i, "summer"],
+  [/autumn|fall|november|september/i, "autumn"],
+  [/spring|wedding/i, "the spring season"],
+  [/new year|january/i, "the new year"],
+];
 
-export function keyInsights(c: Campaign, stepId: string): Insight[] {
+/** One smart read on the copy of a message, scoped to the channel being viewed. */
+function contentInsight(c: Campaign, me: StepPerf, others: StepPerf[], f: (n: number) => string, channel?: Channel): Insight | null {
+  const s = me.step;
+  const copy = channel === "email" ? [s.email?.subject ?? "", ...(s.email?.body ?? [])].join(" ") : channel === "text" ? s.text?.body ?? "" : [s.text?.body ?? "", s.email?.subject ?? ""].join(" ");
+  if (!copy.trim()) return null;
+
+  const bits: string[] = [];
+  const season = SEASON.find(([re]) => re.test(copy))?.[1];
+  if (season) bits.push(`It was written in a timely ${season} context, which gave guests a reason to pay attention right now.`);
+  if (OFFER.test(copy)) bits.push("It carried a concrete offer, so guests knew exactly what they’d get by booking.");
+  if (URGENCY.test(copy)) bits.push(`A deadline (“${copy.match(URGENCY)![0].toLowerCase()}”) added urgency.`);
+
+  if (channel !== "email" && s.text?.media) bits.push(`The ${s.text.media.kind} of the actual room gave guests a visual reason to tap.`);
+  if (channel !== "text" && s.emailMedia) bits.push(`The ${s.emailMedia.kind} in the email showed the room instead of just describing it.`);
+  if (channel === "email" && s.email) bits.push(`The subject line “${s.email.subject}” ${/\d/.test(s.email.subject) ? "states the offer up front" : "sets the scene before the open"}.`);
+
+  const noMedia = others.filter((p) => !hasMedia(p.step, channel) && p.clickRate !== null);
+  if (hasMedia(s, channel) && noMedia.length) {
+    const nm = noMedia.reduce((a, p) => a + p.clickRate!, 0) / noMedia.length;
+    bits.push(`Click rate was ${f(me.clickRate!)} vs ${f(nm)} for the messages without media.`);
+  }
+
+  if (!bits.length) return null;
+  return { kind: "content", title: "Why the content worked", detail: bits.join(" ") };
+}
+
+export function keyInsights(c: Campaign, stepId: string, channel?: Channel): Insight[] {
   const perf = stepPerf(c);
   const me = perf.find((p) => p.step.id === stepId)!;
   const others = perf.filter((p) => p.step.id !== stepId && p.clickRate !== null);
@@ -91,53 +131,18 @@ export function keyInsights(c: Campaign, stepId: string): Insight[] {
     });
   }
 
-  // Media
-  const noMedia = others.filter((p) => !hasMedia(p.step));
-  if (hasMedia(me.step) && noMedia.length) {
-    const nm = noMedia.reduce((a, p) => a + p.clickRate!, 0) / noMedia.length;
-    out.push({
-      kind: "content",
-      title: "This was the only message with media",
-      detail: `You added ${mediaLabel(me.step)}. Click rate was ${f(me.clickRate)} vs ${f(nm)} for the text-only messages. A visual of the actual room gives guests a reason to tap.`,
-    });
-  } else if (!hasMedia(me.step) && others.some((p) => hasMedia(p.step))) {
-    const m = others.find((p) => hasMedia(p.step))!;
-    out.push({ kind: "content", title: "No media in this message", detail: `${m.step.name} included ${mediaLabel(m.step)} and reached a ${f(m.clickRate!)} click rate vs ${f(me.clickRate)} here.` });
-  }
-
-  // Text length & urgency
-  if (me.step.text) {
-    const len = me.step.text.body.length;
-    const urgent = URGENCY.test(me.step.text.body);
-    out.push({
-      kind: "content",
-      title: urgent ? "Urgency-led copy" : "Offer-led copy",
-      detail: `${len} characters, 1 link${urgent ? ", with a deadline (“" + me.step.text.body.match(URGENCY)![0] + "”)" : ""}. ${me.step.text.body.includes("{first_name}") ? "Opens with the guest’s first name." : ""}`.trim(),
-    });
-  }
-
-  // Subject line
-  if (me.step.email) {
-    const s = me.step.email.subject;
-    out.push({
-      kind: "content",
-      title: "Email subject line",
-      detail: `“${s}” — ${s.includes("{first_name}") ? "personalised with the guest’s name" : "not personalised"}, ${/\d/.test(s) ? "states a concrete offer" : "no number or offer in the subject"}.`,
-    });
-  }
-
-  // Timing
-  out.push({ kind: "content", title: "Timing", detail: `Sent ${me.step.delay.toLowerCase()} to ${me.step.eligible.toLocaleString()} eligible guests.` });
+  const content = contentInsight(c, me, others, f, channel);
+  if (content) out.push(content);
 
   // Recommendation
   if (best === stepId && hasMedia(me.step)) {
     out.push({
       kind: "next",
       title: "Try this in your next campaign",
-      detail: "Move the photo + video pairing into your initial message, and keep this copy style for follow-ups. One campaign isn’t proof — media is the most likely factor here, so test it again to confirm.",
+      detail: "Lead with this message as your initial send next time — the media and copy pairing is the most likely factor behind its lead. One campaign isn’t proof, so test it again to confirm.",
     });
   } else if (best === stepId) {
-    out.push({ kind: "next", title: "Try this in your next campaign", detail: "Reuse this copy and timing as a starting point. Change one thing at a time so you can see what moves bookings." });
+    out.push({ kind: "next", title: "Try this in your next campaign", detail: "Reuse this copy and timing as the initial message of your next campaign. Change one thing at a time so you can see what moves bookings." });
   } else {
     const b = perf.find((p) => p.step.id === best);
     if (b) out.push({ kind: "next", title: "What to change", detail: `Borrow from ${b.step.name}, the strongest message in this sequence${hasMedia(b.step) ? " — especially its media" : ""}.` });
