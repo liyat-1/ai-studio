@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { BarChart3, Inbox, LayoutGrid, Megaphone, Settings, Users } from "lucide-react";
 import type { ReactNode } from "react";
+import { HOME_SEARCH } from "@/routes/index";
 
 const nav = [
   { label: "Dashboard", icon: LayoutGrid },

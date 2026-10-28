@@ -31,7 +31,7 @@ export const Route = createFileRoute("/campaigns/$id")({
   notFoundComponent: () => (
     <div className="p-10">
       <p className="font-medium">Campaign not found.</p>
-      <Link to="/" className="mt-2 inline-block text-sm text-primary hover:underline">Back to campaigns</Link>
+      <Link to="/" search={HOME_SEARCH} className="mt-2 inline-block text-sm text-primary hover:underline">Back to campaigns</Link>
     </div>
   ),
   component: ResultsPage,
@@ -46,7 +46,7 @@ function ResultsPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-6 lg:px-10">
       <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link to="/" className="hover:text-primary">Drip Campaigns</Link>
+        <Link to="/" search={HOME_SEARCH} className="hover:text-primary">Drip Campaigns</Link>
         <span aria-hidden>/</span>
         <span className="text-foreground">{c.name}</span>
       </nav>
@@ -62,7 +62,7 @@ function ResultsPage() {
           </p>
         </div>
         <Button variant="outline" asChild>
-          <Link to="/"><ChevronLeft /> Back to campaigns</Link>
+          <Link to="/" search={HOME_SEARCH}><ChevronLeft /> Back to campaigns</Link>
         </Button>
       </header>
 
