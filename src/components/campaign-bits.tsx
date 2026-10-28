@@ -14,7 +14,7 @@ const statusTone: Record<CampaignStatus, string> = {
 
 export function StatusLabel({ status }: { status: CampaignStatus }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-xs font-medium", statusTone[status])}>
+    <span className={cn("inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-xs font-medium whitespace-nowrap", statusTone[status])}>
       <span className="size-1.5 rounded-[1px] bg-current" aria-hidden />
       {STATUS_LABEL[status]}
     </span>
