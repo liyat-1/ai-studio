@@ -72,6 +72,8 @@ export interface Campaign {
   channel: ChannelStrategy;
   eligible: number;
   reached: number;
+  /** Guest-level funnel (each guest counted once, across all messages). */
+  funnel: { delivered: number; clicked: number; booked: number };
   costIsEstimate: boolean;
   steps: Step[];
 }
@@ -122,6 +124,7 @@ export const campaigns: Campaign[] = [
     channel: "text_email",
     eligible: 2000,
     reached: 1850,
+    funnel: { delivered: 1790, clicked: 980, booked: 369 },
     costIsEstimate: false,
     steps: [
       {
@@ -189,6 +192,7 @@ export const campaigns: Campaign[] = [
     channel: "text_fallback_email",
     eligible: 3400,
     reached: 2910,
+    funnel: { delivered: 2810, clicked: 610, booked: 123 },
     costIsEstimate: true,
     steps: [
       {
@@ -227,6 +231,7 @@ export const campaigns: Campaign[] = [
     channel: "email",
     eligible: 820,
     reached: 774,
+    funnel: { delivered: 774, clicked: 188, booked: 14 },
     costIsEstimate: false,
     steps: [
       {
@@ -255,6 +260,7 @@ export const campaigns: Campaign[] = [
     channel: "text",
     eligible: 1500,
     reached: 0,
+    funnel: { delivered: 0, clicked: 0, booked: 0 },
     costIsEstimate: true,
     steps: [
       { id: "initial", name: "Initial message", delay: "Nov 10, 10:00 AM", eligible: 1500, channels: { text: sms(0, 0, null, null) }, text: { body: "Hi {first_name}, holiday dates at The Saltwater open Nov 12. Get first pick: saltwtr.co/hol Reply STOP to opt out.", segments: 1 } },
@@ -271,6 +277,7 @@ export const campaigns: Campaign[] = [
     channel: "text",
     eligible: 960,
     reached: 612,
+    funnel: { delivered: 601, clicked: 140, booked: 27 },
     costIsEstimate: false,
     steps: [
       { id: "initial", name: "Initial message", delay: "Jul 14, 12:00 PM", eligible: 960, channels: { text: sms(640, 612, 140, 27) }, text: { body: "Midweek flash: Tue–Thu stays from $189 this month only. saltwtr.co/mid Reply STOP to opt out.", segments: 1 } },
@@ -286,6 +293,7 @@ export const campaigns: Campaign[] = [
     channel: "text_email",
     eligible: 0,
     reached: 0,
+    funnel: { delivered: 0, clicked: 0, booked: 0 },
     costIsEstimate: true,
     steps: [{ id: "initial", name: "Initial message", delay: "Not scheduled", eligible: 0, channels: { text: sms(0, 0, null, null), email: mail(0, 0, null, null) }, text: { body: "Happy anniversary, {first_name}! A thank-you from The Saltwater: saltwtr.co/thanks Reply STOP to opt out.", segments: 1 }, email: null }],
   },
