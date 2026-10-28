@@ -358,7 +358,7 @@ export function sampleGuests(c: Campaign, count = 36): Guest[] {
     let clicked = false;
     let booked = false;
     c.steps.forEach((s, si) => {
-      if (stopped || c.status === "draft" || c.status === "scheduled" || si > 0 && r() > s.eligible / c.steps[0].eligible) {
+      if (stopped || c.status === "draft" || c.status === "scheduled" || si > 0 && r() > s.eligible / c.steps[0]!.eligible) {
         stepStatus[s.id] = "not_sent";
         return;
       }
@@ -382,7 +382,7 @@ export function sampleGuests(c: Campaign, count = 36): Guest[] {
     return {
       id: `g${i}`,
       name,
-      contact: channel === "text" ? `(•••) •••-${String(1000 + Math.floor(r() * 8999))}` : `${name.split(" ")[0].toLowerCase()}@•••.com`,
+      contact: channel === "text" ? `(•••) •••-${String(1000 + Math.floor(r() * 8999))}` : `${name.split(" ")[0]!.toLowerCase()}@•••.com`,
       channel,
       stepStatus,
       clicked,
