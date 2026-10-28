@@ -349,6 +349,7 @@ function CampaignTable({ rows, actions }: { rows: Campaign[]; actions: Actions }
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
