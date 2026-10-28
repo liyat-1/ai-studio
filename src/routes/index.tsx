@@ -1,18 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowDown, ArrowUp, Copy, FlaskConical, LayoutList, Plus, Rows3, Search, Trash2, Trophy } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, FlaskConical, LayoutList, MoreHorizontal, Plus, Rows3, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ReachBar, StatusLabel, VolumeInfo } from "@/components/campaign-bits";
+import { FollowUpChip, PersonAvatar, ReachBar, StatusLabel, VolumeInfo } from "@/components/campaign-bits";
 import { ResultsDialog } from "@/components/results-dialog";
 import {
-  type Campaign, type CampaignStatus, type ChannelStrategy, CHANNEL_LABEL, STATUS_LABEL, bookingRate, campaignTotals, campaigns as seed, fmt, fmtDate, money,
-  topCampaignId,
+  type Campaign, type CampaignStatus, type ChannelStrategy, CHANNEL_LABEL, STATUS_LABEL, campaignTotals, campaigns as seed, fmt, fmtDate, money,
 } from "@/lib/campaigns";
 import { cn } from "@/lib/utils";
 
@@ -57,8 +59,6 @@ function CampaignsPage() {
       ),
     [list, search],
   );
-
-  const topId = useMemo(() => topCampaignId(filtered), [filtered]);
 
   const actions = {
     test: (c: Campaign) => toast.success(`Test message for “${c.name}” sent to your phone`),
@@ -130,10 +130,10 @@ function CampaignsPage() {
         </div>
       ) : view === "card" ? (
         <ul className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((c) => <CampaignCard key={c.id} c={c} actions={actions} top={c.id === topId} />)}
+          {filtered.map((c) => <CampaignCard key={c.id} c={c} actions={actions} />)}
         </ul>
       ) : (
-        <CampaignTable rows={filtered} actions={actions} topId={topId} />
+        <CampaignTable rows={filtered} actions={actions} />
       )}
 
       <ResultsDialog key={resultsFor?.id ?? "none"} c={resultsFor} onClose={() => setResultsFor(null)} />
@@ -164,62 +164,46 @@ function CampaignsPage() {
 
 type Actions = { test: (c: Campaign) => void; clone: (c: Campaign) => void; del: (c: Campaign) => void; results: (c: Campaign) => void };
 
-function CampaignCard({ c, actions, top }: { c: Campaign; actions: Actions; top: boolean }) {
+function CampaignCard({ c, actions }: { c: Campaign; actions: Actions }) {
   const t = campaignTotals(c);
-  const bookings = t.steps.every((s) => s.bookings === null) ? null : t.steps.reduce<number>((a, s) => a + (s.bookings ?? 0), 0);
   return (
-    <li
-      className={cn(
-        "flex flex-col border bg-card p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md",
-        top && "border-primary/50 bg-primary-soft/40 ring-1 ring-primary/50",
-      )}
-    >
+    <li className="flex flex-col border bg-card p-4 shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift">
       <div className="flex items-start justify-between gap-2">
         <h2 className="text-[15px] font-semibold leading-snug">{c.name}</h2>
         <StatusLabel status={c.status} />
       </div>
-      {top && (
-        <p className="mt-2 inline-flex w-fit items-center gap-1 rounded-sm bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
-          <Trophy className="size-3" /> Top performer
+      <div className="mt-2 flex items-center gap-2">
+        <PersonAvatar name={c.createdBy} />
+        <p className="truncate text-xs text-muted-foreground">
+          {c.createdBy} · {fmtDate(c.createdAt)}
         </p>
-      )}
-      <p className="mt-2 truncate text-xs text-muted-foreground">{c.audience}</p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {c.createdBy} · {fmtDate(c.createdAt)}
-      </p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {CHANNEL_LABEL[c.channel]} · {t.followUps === 0 ? "No follow-ups" : `${t.followUps} follow-up${t.followUps > 1 ? "s" : ""}`}
-      </p>
+      </div>
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <p className="truncate text-xs text-muted-foreground">{c.audience}</p>
+        <FollowUpChip n={t.followUps} />
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">{CHANNEL_LABEL[c.channel]}</p>
 
       <div className="mt-4">
         <div className="mb-2 text-xs text-muted-foreground">
           Eligible guests <span className="ml-1 text-sm font-semibold text-foreground num">{fmt(c.eligible)}</span>
         </div>
-        <ReachBar c={c} />
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1"><ReachBar c={c} /></div>
+          <div className="shrink-0 text-right">
+            <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground">Sent <VolumeInfo c={c} /></div>
+            <div className="text-sm font-semibold num">{fmt(t.totalSent)}</div>
+          </div>
+        </div>
       </div>
 
-      <dl className="mt-4 grid grid-cols-3 gap-3 border-t pt-3">
-        <div className="min-w-0">
-          <dt className="flex items-center gap-1 text-xs text-muted-foreground">Sent <VolumeInfo c={c} /></dt>
-          <dd className="text-sm font-semibold num">{fmt(t.totalSent)}</dd>
-        </div>
-        <div className="min-w-0">
-          <dt className="text-xs text-muted-foreground">{c.costIsEstimate ? "Est. cost" : "Cost"}</dt>
-          <dd className="text-sm font-semibold num">{money(t.cost)}</dd>
-        </div>
-        <div className="min-w-0">
-          <dt className="text-xs text-muted-foreground">Bookings</dt>
-          <dd className="text-sm font-semibold num">{fmt(bookings)}</dd>
-        </div>
-      </dl>
-
       <div className="mt-auto border-t pt-3">
-        <Button size="sm" className="w-full" onClick={() => actions.results(c)}>See results</Button>
-        <div className="mt-2 grid grid-cols-3 gap-1.5">
-          <Button size="sm" variant="outline" onClick={() => actions.test(c)}><FlaskConical /> Test</Button>
-          <Button size="sm" variant="outline" onClick={() => actions.clone(c)}><Copy /> Clone</Button>
-          <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive-soft hover:text-destructive" onClick={() => actions.del(c)}>
-            <Trash2 /> Delete
+        <div className="flex items-center gap-1.5">
+          <Button size="sm" className="flex-1" onClick={() => actions.results(c)}>See results</Button>
+          <Button size="icon-sm" variant="outline" aria-label={`Test ${c.name}`} onClick={() => actions.test(c)}><FlaskConical /></Button>
+          <Button size="icon-sm" variant="outline" aria-label={`Clone ${c.name}`} onClick={() => actions.clone(c)}><Copy /></Button>
+          <Button size="icon-sm" variant="outline" aria-label={`Delete ${c.name}`} className="text-destructive hover:bg-destructive-soft hover:text-destructive" onClick={() => actions.del(c)}>
+            <Trash2 />
           </Button>
         </div>
       </div>
@@ -229,7 +213,7 @@ function CampaignCard({ c, actions, top }: { c: Campaign; actions: Actions; top:
 
 type SortKey = "name" | "eligible" | "reached" | "sent" | "cost" | "createdAt";
 
-function CampaignTable({ rows, actions, topId }: { rows: Campaign[]; actions: Actions; topId: string | null }) {
+function CampaignTable({ rows, actions }: { rows: Campaign[]; actions: Actions }) {
   const [sort, setSort] = useState<{ k: SortKey; dir: 1 | -1 }>({ k: "createdAt", dir: -1 });
   const data = rows.map((c) => ({ c, t: campaignTotals(c) }));
   const val = (r: (typeof data)[number]): string | number =>
@@ -266,19 +250,17 @@ function CampaignTable({ rows, actions, topId }: { rows: Campaign[]; actions: Ac
         </thead>
         <tbody className="divide-y">
           {data.map(({ c, t }) => (
-            <tr key={c.id} className={cn("hover:bg-muted/50 focus-within:bg-primary-soft/60", c.id === topId && "bg-primary-soft/50 hover:bg-primary-soft/70")}>
+            <tr key={c.id} className="hover:bg-muted/50 focus-within:bg-muted/60">
               <td className="px-3 py-2.5">
-                <div className="flex items-center gap-1.5 font-medium">
-                  {c.name}
-                  {c.id === topId && (
-                    <span className="inline-flex items-center gap-1 rounded-sm bg-primary px-1.5 py-0.5 text-[11px] font-medium text-primary-foreground">
-                      <Trophy className="size-3" /> Top performer
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs text-muted-foreground">{t.followUps} follow-up{t.followUps === 1 ? "" : "s"}</div>
+                <div className="font-medium">{c.name}</div>
+                <FollowUpChip n={t.followUps} className="mt-1" />
               </td>
-              <td className="px-3 py-2.5 whitespace-nowrap">{c.createdBy}</td>
+              <td className="px-3 py-2.5 whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  <PersonAvatar name={c.createdBy} />
+                  {c.createdBy}
+                </div>
+              </td>
               <td className="px-3 py-2.5 whitespace-nowrap text-muted-foreground">{fmtDate(c.createdAt)}</td>
               <td className="px-3 py-2.5"><StatusLabel status={c.status} /></td>
               <td className="px-3 py-2.5 whitespace-nowrap text-muted-foreground">{CHANNEL_LABEL[c.channel]}</td>
@@ -292,14 +274,22 @@ function CampaignTable({ rows, actions, topId }: { rows: Campaign[]; actions: Ac
                 {c.costIsEstimate && <span className="ml-1 text-xs text-muted-foreground">est.</span>}
               </td>
               <td className="sticky right-0 border-l bg-card px-3 py-2 text-right whitespace-nowrap">
-                <div className="inline-flex items-center justify-end gap-1.5">
-                  <Button size="sm" onClick={() => actions.results(c)}>See results</Button>
-                  <Button size="sm" variant="outline" onClick={() => actions.test(c)}><FlaskConical /> Test</Button>
-                  <Button size="sm" variant="outline" onClick={() => actions.clone(c)}><Copy /> Clone</Button>
-                  <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive-soft hover:text-destructive" onClick={() => actions.del(c)}>
-                    <Trash2 /> Delete
-                  </Button>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon-sm" variant="outline" aria-label={`Actions for ${c.name}`}>
+                      <MoreHorizontal />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => actions.results(c)}>See results</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => actions.test(c)}><FlaskConical /> Test</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => actions.clone(c)}><Copy /> Clone</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-destructive focus:bg-destructive-soft focus:text-destructive" onClick={() => actions.del(c)}>
+                      <Trash2 /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </td>
             </tr>
           ))}
