@@ -65,6 +65,8 @@ export interface Step {
 export interface Campaign {
   id: string;
   name: string;
+  /** Emoji shown as the campaign's icon. */
+  icon: string;
   createdBy: string;
   audience: string;
   createdAt: string;
@@ -117,6 +119,7 @@ export const campaigns: Campaign[] = [
   {
     id: "august-campaign",
     name: "August Campaign",
+    icon: "🌅",
     audience: "Past guests · Summer 2025",
     createdBy: "Maya Chen",
     createdAt: "2026-08-02",
@@ -166,7 +169,7 @@ export const campaigns: Campaign[] = [
           ["Hi {first_name},", "Just a gentle reminder that your returning-guest rate is still open. Rooms with an ocean view tend to go first in late August."],
           "See available dates",
         ),
-        emailMedia: { kind: "video", caption: "60-second terrace tour" },
+        emailMedia: { kind: "image", caption: "Suite 12 at golden hour" },
       },
       {
         id: "fu2",
@@ -185,6 +188,7 @@ export const campaigns: Campaign[] = [
   {
     id: "fall-returning",
     name: "Fall Returning Guests",
+    icon: "🍂",
     audience: "Loyalty members",
     createdBy: "Daniel Ortiz",
     createdAt: "2026-09-18",
@@ -224,6 +228,7 @@ export const campaigns: Campaign[] = [
   {
     id: "spring-weddings",
     name: "Spring Wedding Inquiries",
+    icon: "💍",
     audience: "Wedding inquiries 2026",
     createdBy: "Maya Chen",
     createdAt: "2026-03-04",
@@ -253,6 +258,7 @@ export const campaigns: Campaign[] = [
   {
     id: "holiday-preview",
     name: "Holiday Preview",
+    icon: "🎄",
     audience: "Past guests · Holiday 2025",
     createdBy: "Priya Nair",
     createdAt: "2026-10-21",
@@ -270,6 +276,7 @@ export const campaigns: Campaign[] = [
   {
     id: "midweek-flash",
     name: "Midweek Flash Sale",
+    icon: "⚡",
     audience: "Local drive-market guests",
     createdBy: "Daniel Ortiz",
     createdAt: "2026-07-11",
@@ -286,6 +293,7 @@ export const campaigns: Campaign[] = [
   {
     id: "loyalty-draft",
     name: "Loyalty Anniversary",
+    icon: "🎂",
     audience: "Loyalty members",
     createdBy: "Priya Nair",
     createdAt: "2026-10-25",
