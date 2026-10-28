@@ -159,61 +159,62 @@ function CampaignsPage() {
 
 type Actions = { test: (c: Campaign) => void; clone: (c: Campaign) => void; del: (c: Campaign) => void };
 
-function MoreMenu({ c, actions }: { c: Campaign; actions: Actions }) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={`More actions for ${c.name}`}><MoreHorizontal /></Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={() => actions.test(c)}><FlaskConical /> Send test</DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => actions.clone(c)}><Copy /> Clone</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => actions.del(c)}><Trash2 /> Delete</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function CampaignCard({ c, actions }: { c: Campaign; actions: Actions }) {
+function CampaignCard({ c, actions, top }: { c: Campaign; actions: Actions; top: boolean }) {
   const t = campaignTotals(c);
+  const bookings = t.steps.every((s) => s.bookings === null) ? null : t.steps.reduce<number>((a, s) => a + (s.bookings ?? 0), 0);
   return (
-    <li className="grid grid-cols-1 gap-5 border bg-card px-5 py-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] lg:items-center lg:gap-8">
-      <div className="min-w-0">
-        <div className="flex items-center gap-2.5">
-          <h2 className="truncate text-[15px] font-semibold">{c.name}</h2>
-          <StatusLabel status={c.status} />
-        </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {c.createdBy} · {fmtDate(c.createdAt)}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {CHANNEL_LABEL[c.channel]} · {t.followUps === 0 ? "No follow-ups" : `${t.followUps} follow-up${t.followUps > 1 ? "s" : ""}`}
-        </p>
+    <li
+      className={cn(
+        "flex flex-col border bg-card p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md",
+        top && "border-primary/50 bg-primary-soft/40 ring-1 ring-primary/50",
+      )}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <h2 className="text-[15px] font-semibold leading-snug">{c.name}</h2>
+        <StatusLabel status={c.status} />
       </div>
+      {top && (
+        <p className="mt-2 inline-flex w-fit items-center gap-1 rounded-sm bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
+          <Trophy className="size-3" /> Top performer
+        </p>
+      )}
+      <p className="mt-2 truncate text-xs text-muted-foreground">{c.audience}</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {c.createdBy} · {fmtDate(c.createdAt)}
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {CHANNEL_LABEL[c.channel]} · {t.followUps === 0 ? "No follow-ups" : `${t.followUps} follow-up${t.followUps > 1 ? "s" : ""}`}
+      </p>
 
-      <div className="lg:border-l lg:pl-8">
+      <div className="mt-4">
         <div className="mb-2 text-xs text-muted-foreground">
           Eligible guests <span className="ml-1 text-sm font-semibold text-foreground num">{fmt(c.eligible)}</span>
         </div>
         <ReachBar c={c} />
       </div>
 
-      <div className="flex items-center justify-between gap-4 lg:border-l lg:pl-8">
-        <dl className="flex gap-6">
-          <div>
-            <dt className="flex items-center gap-1 text-xs text-muted-foreground">Total messages sent <VolumeInfo c={c} /></dt>
-            <dd className="text-sm font-semibold num">{fmt(t.totalSent)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs leading-5 text-muted-foreground">{c.costIsEstimate ? "Est. cost" : "Cost"}</dt>
-            <dd className="text-sm font-semibold num">{money(t.cost)}</dd>
-          </div>
-        </dl>
-        <div className="flex items-center gap-1">
-          <Button size="sm" onClick={() => toast("Results pop-up is not finished yet")}>See results</Button>
-          <MoreMenu c={c} actions={actions} />
+      <dl className="mt-4 grid grid-cols-3 gap-3 border-t pt-3">
+        <div className="min-w-0">
+          <dt className="flex items-center gap-1 text-xs text-muted-foreground">Sent <VolumeInfo c={c} /></dt>
+          <dd className="text-sm font-semibold num">{fmt(t.totalSent)}</dd>
         </div>
+        <div className="min-w-0">
+          <dt className="text-xs text-muted-foreground">{c.costIsEstimate ? "Est. cost" : "Cost"}</dt>
+          <dd className="text-sm font-semibold num">{money(t.cost)}</dd>
+        </div>
+        <div className="min-w-0">
+          <dt className="text-xs text-muted-foreground">Bookings</dt>
+          <dd className="text-sm font-semibold num">{fmt(bookings)}</dd>
+        </div>
+      </dl>
+
+      <div className="mt-auto flex items-center gap-1.5 border-t pt-3 [margin-top:1rem]">
+        <Button size="sm" className="flex-1" onClick={() => toast("Results pop-up is not finished yet")}>See results</Button>
+        <Button size="sm" variant="outline" onClick={() => actions.test(c)}><FlaskConical /> Test</Button>
+        <Button size="sm" variant="outline" onClick={() => actions.clone(c)}><Copy /> Clone</Button>
+        <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive-soft hover:text-destructive" onClick={() => actions.del(c)}>
+          <Trash2 /> Delete
+        </Button>
       </div>
     </li>
   );
