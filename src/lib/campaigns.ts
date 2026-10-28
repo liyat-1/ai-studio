@@ -40,11 +40,15 @@ export interface EmailTemplate {
   cta: string;
   secondary?: { title: string; text: string };
   footer: string;
+  /** media block in the email body */
+  media?: { kind: "image" | "video"; caption: string };
 }
 
 export interface TextMessage {
   body: string;
   segments: number;
+  /** MMS attachment */
+  media?: { kind: "image" | "video"; alt: string };
 }
 
 export interface Step {
@@ -55,12 +59,14 @@ export interface Step {
   channels: Partial<Record<Channel, ChannelStats>>;
   text?: TextMessage;
   email?: EmailTemplate | null;
+  emailMedia?: EmailTemplate["media"];
 }
 
 export interface Campaign {
   id: string;
   name: string;
   createdBy: string;
+  audience: string;
   createdAt: string;
   status: CampaignStatus;
   channel: ChannelStrategy;
@@ -109,6 +115,7 @@ export const campaigns: Campaign[] = [
   {
     id: "august-campaign",
     name: "August Campaign",
+    audience: "Past guests · Summer 2025",
     createdBy: "Maya Chen",
     createdAt: "2026-08-02",
     status: "completed",
@@ -143,10 +150,11 @@ export const campaigns: Campaign[] = [
         name: "Follow-up 1",
         delay: "2 days after initial message",
         eligible: 1850,
-        channels: { text: sms(1850, 1720, 260, 54), email: mail(1500, 1430, 190, 22) },
+        channels: { text: sms(1850, 1760, 540, 138), email: mail(1500, 1450, 320, 52) },
         text: {
-          body: "{first_name}, just a reminder — your 20% summer rate is still waiting. Pick your dates: saltwtr.co/aug20 Reply STOP to opt out.",
+          body: "{first_name}, this is the view from Suite 12 right now 🌅 Your 20% rate is still waiting: saltwtr.co/aug20 Reply STOP to opt out.",
           segments: 1,
+          media: { kind: "image", alt: "Ocean view suite at sunset" },
         },
         email: augustEmail(
           "Still dreaming of the coast?",
@@ -155,6 +163,7 @@ export const campaigns: Campaign[] = [
           ["Hi {first_name},", "Just a gentle reminder that your returning-guest rate is still open. Rooms with an ocean view tend to go first in late August."],
           "See available dates",
         ),
+        emailMedia: { kind: "video", caption: "60-second terrace tour" },
       },
       {
         id: "fu2",
@@ -173,6 +182,7 @@ export const campaigns: Campaign[] = [
   {
     id: "fall-returning",
     name: "Fall Returning Guests",
+    audience: "Loyalty members",
     createdBy: "Daniel Ortiz",
     createdAt: "2026-09-18",
     status: "in_progress",
@@ -210,6 +220,7 @@ export const campaigns: Campaign[] = [
   {
     id: "spring-weddings",
     name: "Spring Wedding Inquiries",
+    audience: "Wedding inquiries 2026",
     createdBy: "Maya Chen",
     createdAt: "2026-03-04",
     status: "completed",
@@ -237,6 +248,7 @@ export const campaigns: Campaign[] = [
   {
     id: "holiday-preview",
     name: "Holiday Preview",
+    audience: "Past guests · Holiday 2025",
     createdBy: "Priya Nair",
     createdAt: "2026-10-21",
     status: "scheduled",
@@ -252,6 +264,7 @@ export const campaigns: Campaign[] = [
   {
     id: "midweek-flash",
     name: "Midweek Flash Sale",
+    audience: "Local drive-market guests",
     createdBy: "Daniel Ortiz",
     createdAt: "2026-07-11",
     status: "paused",
@@ -266,6 +279,7 @@ export const campaigns: Campaign[] = [
   {
     id: "loyalty-draft",
     name: "Loyalty Anniversary",
+    audience: "Loyalty members",
     createdBy: "Priya Nair",
     createdAt: "2026-10-25",
     status: "draft",
@@ -276,6 +290,31 @@ export const campaigns: Campaign[] = [
     steps: [{ id: "initial", name: "Initial message", delay: "Not scheduled", eligible: 0, channels: { text: sms(0, 0, null, null), email: mail(0, 0, null, null) }, text: { body: "Happy anniversary, {first_name}! A thank-you from The Saltwater: saltwtr.co/thanks Reply STOP to opt out.", segments: 1 }, email: null }],
   },
 ];
+
+export interface Audience { id: string; name: string; description: string; source: string; guests: number; createdAt: string; updatedAt: string; criteria: string[] }
+export const audiences: Audience[] = [
+  { id: "a1", name: "Past guests · Summer 2025", description: "Stayed June–August 2025, any room type", source: "PMS stay history", guests: 2140, createdAt: "2026-07-28", updatedAt: "2026-08-01", criteria: ["Stay dates: Jun 1 – Aug 31, 2025", "Has text or email consent"] },
+  { id: "a2", name: "Loyalty members", description: "Active Saltwater Circle members", source: "Loyalty program", guests: 3520, createdAt: "2026-02-10", updatedAt: "2026-10-20", criteria: ["Loyalty status: Active", "Has text or email consent"] },
+  { id: "a3", name: "Wedding inquiries 2026", description: "Submitted the weddings form in 2026", source: "Website form", guests: 860, createdAt: "2026-03-01", updatedAt: "2026-03-01", criteria: ["Form: Weddings", "Submitted: 2026"] },
+  { id: "a4", name: "Past guests · Holiday 2025", description: "Stayed Nov 20 – Jan 5 last season", source: "PMS stay history", guests: 1580, createdAt: "2026-10-18", updatedAt: "2026-10-21", criteria: ["Stay dates: Nov 20, 2025 – Jan 5, 2026"] },
+  { id: "a5", name: "Local drive-market guests", description: "Home address within 150 miles", source: "PMS profile", guests: 1010, createdAt: "2026-07-01", updatedAt: "2026-07-09", criteria: ["Distance from hotel: ≤ 150 mi", "Has mobile number"] },
+];
+export const AUDIENCE_FILTERS = ["Stay dates", "Loyalty status", "Distance from hotel", "Room type", "Booking source", "Number of past stays", "Has text consent", "Has email consent"];
+
+export const initials = (n: string) => n.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+
+/** Booking rate per reached guest; null when bookings aren't tracked or nothing sent. */
+export function bookingRate(c: Campaign) {
+  const b = campaignTotals(c).steps.map((s) => s.bookings);
+  if (!c.reached || b.every((x) => x === null)) return null;
+  return b.reduce<number>((a, v) => a + (v ?? 0), 0) / c.reached;
+}
+/** Id of the campaign with the highest booking rate (min 500 reached guests). */
+export function topCampaignId(list: Campaign[]) {
+  let best: { id: string; r: number } | null = null;
+  for (const c of list) { const r = bookingRate(c); if (r !== null && c.reached >= 500 && (!best || r > best.r)) best = { id: c.id, r }; }
+  return best?.id ?? null;
+}
 
 export function getCampaign(id: string) {
   return campaigns.find((c) => c.id === id);

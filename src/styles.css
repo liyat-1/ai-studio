@@ -28,8 +28,8 @@
   --radius-3xl: 3px;
   --radius-4xl: 3px;
   --radius-full: 3px;
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-sans: "Roboto", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, monospace;
   --color-primary-hover: var(--primary-hover);
   --color-primary-soft: var(--primary-soft);
   --color-destructive-soft: var(--destructive-soft);
@@ -38,6 +38,10 @@
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
   --color-track: var(--track);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --shadow-card: var(--shadow-card-v);
+  --shadow-lift: var(--shadow-lift-v);
   --color-canvas: var(--canvas);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -100,6 +104,11 @@
   --warning: oklch(0.55 0.15 50);
   --warning-soft: oklch(0.965 0.03 70);
   --track: oklch(0.9 0.012 255);
+  --highlight: oklch(0.8 0.15 80);
+  --highlight-foreground: oklch(0.38 0.09 60);
+  --shadow-card-v: 0 1px 2px oklch(0.29 0.06 260 / 0.06), 0 2px 8px -2px oklch(0.29 0.06 260 / 0.06);
+  --shadow-lift-v: 0 8px 24px -8px oklch(0.6 0.2 256 / 0.28), 0 2px 6px oklch(0.29 0.06 260 / 0.06);
+  --gradient-top: linear-gradient(135deg, oklch(0.6 0.2 256), oklch(0.68 0.16 220));
   --canvas: oklch(0.935 0.008 255);
   --border: oklch(0.905 0.015 255);
   --input: oklch(0.88 0.015 255);
