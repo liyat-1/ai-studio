@@ -264,6 +264,13 @@ function CampaignTable({ rows, actions }: { rows: Campaign[]; actions: Actions }
       <table className="w-full min-w-[1240px] text-sm">
         <thead className="border-b bg-muted/60">
           <tr>
+            <th scope="col" className="w-10 px-3 py-2.5">
+              <Checkbox
+                aria-label="Select all campaigns"
+                checked={allChecked}
+                onCheckedChange={(on) => setSelected(on ? new Set(rows.map((r) => r.id)) : new Set())}
+              />
+            </th>
             <H k="name">Campaign</H>
             <H>Created by</H>
             <H k="createdAt">Created</H>
@@ -278,10 +285,22 @@ function CampaignTable({ rows, actions }: { rows: Campaign[]; actions: Actions }
         </thead>
         <tbody className="divide-y">
           {data.map(({ c, t }) => (
-            <tr key={c.id} className="hover:bg-muted/50 focus-within:bg-muted/60">
+            <tr key={c.id} data-state={selected.has(c.id) ? "selected" : undefined} className={cn("hover:bg-muted/50 focus-within:bg-muted/60", selected.has(c.id) && "bg-primary-soft/40 hover:bg-primary-soft/60")}>
               <td className="px-3 py-2.5">
-                <div className="font-medium">{c.name}</div>
-                <FollowUpChip n={t.followUps} className="mt-1" />
+                <Checkbox
+                  aria-label={`Select ${c.name}`}
+                  checked={selected.has(c.id)}
+                  onCheckedChange={(on) => toggle(c.id, !!on)}
+                />
+              </td>
+              <td className="px-3 py-2.5">
+                <div className="flex items-center gap-2.5">
+                  <CampaignIcon icon={c.icon} className="size-7 text-sm" />
+                  <div>
+                    <div className="font-medium">{c.name}</div>
+                    <FollowUpChip n={t.followUps} className="mt-1" />
+                  </div>
+                </div>
               </td>
               <td className="px-3 py-2.5 whitespace-nowrap">
                 <div className="flex items-center gap-2">
