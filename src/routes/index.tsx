@@ -67,6 +67,7 @@ function CampaignsPage() {
       toast.success(`Cloned “${c.name}” as a draft`);
     },
     del: (c: Campaign) => setToDelete(c),
+    results: (c: Campaign) => setResultsFor(c),
   };
 
   return (
