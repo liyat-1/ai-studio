@@ -1,4 +1,4 @@
-import { type Campaign, type Step, fmt, pct, stepTotals } from "./campaigns";
+import { type Campaign, type Channel, type Step, fmt, pct, stepTotals } from "./campaigns";
 
 export interface StepPerf {
   step: Step;
