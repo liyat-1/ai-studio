@@ -16,6 +16,8 @@ import {
 import { cn } from "@/lib/utils";
 
 type Search = { q: string; status: CampaignStatus | "all"; channel: ChannelStrategy | "all"; view: "card" | "table" };
+/** Defaults for links pointing back at the campaigns list. */
+export const HOME_SEARCH: Search = { q: "", status: "all", channel: "all", view: "card" };
 
 export const Route = createFileRoute("/")({
   validateSearch: ({ q, status, channel, view }: Record<string, unknown>): Search => ({
