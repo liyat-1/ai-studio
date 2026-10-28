@@ -10,6 +10,7 @@ import {
   type Campaign, type Channel, type DeliveryState, type Guest, type Step, CHANNEL_LABEL, campaignTotals, fmt, fmtDate, getCampaign, money, pct, sampleGuests, stepTotals,
 } from "@/lib/campaigns";
 import { cn } from "@/lib/utils";
+import { HOME_SEARCH } from "@/routes/index";
 
 export const Route = createFileRoute("/campaigns/$id")({
   loader: ({ params }) => {
