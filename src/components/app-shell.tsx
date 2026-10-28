@@ -25,6 +25,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 key={n.label}
                 to={n.to}
+                search={HOME_SEARCH}
                 className="flex items-center gap-2.5 rounded-sm bg-sidebar-accent px-3 py-2 text-sm font-medium text-sidebar-accent-foreground"
               >
                 <n.icon className="size-4" strokeWidth={1.75} />
