@@ -1,7 +1,8 @@
 import { Info } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { type Campaign, type CampaignStatus, STATUS_LABEL, campaignTotals, fmt } from "@/lib/campaigns";
+import { type Campaign, type CampaignStatus, STATUS_LABEL, campaignTotals, fmt, initials } from "@/lib/campaigns";
 
 const statusTone: Record<CampaignStatus, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -17,6 +18,33 @@ export function StatusLabel({ status }: { status: CampaignStatus }) {
     <span className={cn("inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-xs font-medium whitespace-nowrap", statusTone[status])}>
       <span className="size-1.5 rounded-[1px] bg-current" aria-hidden />
       {STATUS_LABEL[status]}
+    </span>
+  );
+}
+
+const avatarTones = ["bg-primary-soft text-primary", "bg-success-soft text-success", "bg-warning-soft text-warning"];
+
+/** Initials avatar for a person's name, with a stable per-name tint. */
+export function PersonAvatar({ name, className }: { name: string; className?: string }) {
+  const tone = avatarTones[[...name].reduce((a, ch) => a + ch.charCodeAt(0), 0) % avatarTones.length];
+  return (
+    <Avatar className={cn("size-6 shrink-0", className)}>
+      <AvatarFallback className={cn("text-[10px] font-semibold", tone)}>{initials(name)}</AvatarFallback>
+    </Avatar>
+  );
+}
+
+/** Follow-up count chip. */
+export function FollowUpChip({ n, className }: { n: number; className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap",
+        n > 0 ? "border-primary/25 bg-primary-soft text-primary" : "text-muted-foreground",
+        className,
+      )}
+    >
+      {n === 0 ? "No follow-ups" : `${n} follow-up${n > 1 ? "s" : ""}`}
     </span>
   );
 }

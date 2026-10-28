@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronRight, Trophy } from "lucide-react";
+import { ChevronRight, LayoutList, Lightbulb, Rows3, Trophy } from "lucide-react";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Metric } from "@/components/campaign-bits";
 import { EmailPreview, TextPreview } from "@/components/message-previews";
 import { type Campaign, campaignTotals, fmt, money, pct } from "@/lib/campaigns";
-import { bestStepId, keyInsights, stepPerf, type StepPerf } from "@/lib/insights";
+import { bestStepId, campaignInsight, keyInsights, stepPerf, type StepPerf } from "@/lib/insights";
 import { cn } from "@/lib/utils";
 
 const kindTone: Record<string, string> = {
@@ -54,65 +54,187 @@ function Funnel({ c }: { c: Campaign }) {
   );
 }
 
-function PerfRow({ p, selected, best, onSelect }: { p: StepPerf; selected: boolean; best: boolean; onSelect: () => void }) {
-  const tracked = p.clicks !== null;
+/** Message performance as rows (card form). */
+function PerfCards({ perf, best, onSelect }: { perf: StepPerf[]; best: string | null; onSelect: (id: string) => void }) {
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-pressed={selected}
-      className={cn(
-        "flex w-full flex-wrap items-center gap-x-4 gap-y-1 border bg-card px-3 py-2.5 text-left transition hover:bg-muted/50",
-        selected && "border-primary ring-1 ring-primary",
-        best && !selected && "border-success/40 bg-success-soft/40",
-      )}
-    >
-      <div className="min-w-[150px] flex-1">
-        <div className="flex items-center gap-1.5 text-sm font-medium">
-          {p.step.name}
-          {best && (
-            <span className="inline-flex items-center gap-1 rounded-sm bg-success px-1.5 py-0.5 text-[11px] font-medium text-success-foreground">
-              <Trophy className="size-3" /> Best
-            </span>
-          )}
-        </div>
-        <div className="text-xs text-muted-foreground">{p.step.delay}</div>
-      </div>
-      <div className="text-right">
-        <div className="text-sm font-semibold num">{fmt(p.sent)}</div>
-        <div className="text-xs text-muted-foreground">sent</div>
-      </div>
-      <div className="text-right">
-        <div className="text-sm font-semibold num">{pct(p.delivered, p.sent)}</div>
-        <div className="text-xs text-muted-foreground">delivered</div>
-      </div>
-      <div className="text-right">
-        <div className="text-sm font-semibold num">{tracked ? fmt(p.clicks) : "—"}</div>
-        <div className="text-xs text-muted-foreground">clicks {tracked && `(${pct(p.clicks ?? 0, p.delivered)})`}</div>
-      </div>
-      <div className="text-right">
-        <div className="text-sm font-semibold num">{tracked ? fmt(p.bookings) : "—"}</div>
-        <div className="text-xs text-muted-foreground">bookings {tracked && `(${pct(p.bookings ?? 0, p.delivered)})`}</div>
-      </div>
-      <div className="text-right">
-        <div className="text-sm font-semibold num">{money(p.cost)}</div>
-        <div className="text-xs text-muted-foreground">cost</div>
-      </div>
-    </button>
+    <div className="space-y-2">
+      {perf.map((p) => {
+        const tracked = p.clicks !== null;
+        const isBest = best === p.step.id;
+        return (
+          <button
+            key={p.step.id}
+            type="button"
+            onClick={() => onSelect(p.step.id)}
+            className={cn(
+              "flex w-full flex-wrap items-center gap-x-4 gap-y-1 border bg-card px-3 py-2.5 text-left transition hover:bg-muted/50",
+              isBest && "border-success/40 bg-success-soft/40",
+            )}
+          >
+            <div className="min-w-[150px] flex-1">
+              <div className="flex items-center gap-1.5 text-sm font-medium">
+                {p.step.name}
+                {isBest && (
+                  <span className="inline-flex items-center gap-1 rounded-sm bg-success px-1.5 py-0.5 text-[11px] font-medium text-success-foreground">
+                    <Trophy className="size-3" /> Best
+                  </span>
+                )}
+              </div>
+              <div className="text-xs text-muted-foreground">{p.step.delay}</div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-semibold num">{fmt(p.sent)}</div>
+              <div className="text-xs text-muted-foreground">sent</div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-semibold num">{pct(p.delivered, p.sent)}</div>
+              <div className="text-xs text-muted-foreground">delivered</div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-semibold num">{tracked ? fmt(p.clicks) : "—"}</div>
+              <div className="text-xs text-muted-foreground">clicks {tracked && `(${pct(p.clicks ?? 0, p.delivered)})`}</div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-semibold num">{tracked ? fmt(p.bookings) : "—"}</div>
+              <div className="text-xs text-muted-foreground">bookings {tracked && `(${pct(p.bookings ?? 0, p.delivered)})`}</div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-semibold num">{money(p.cost)}</div>
+              <div className="text-xs text-muted-foreground">cost</div>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Message performance as a table with Sent / Delivered / Clicks / Bookings / Cost columns. */
+function PerfTable({ perf, best, onSelect }: { perf: StepPerf[]; best: string | null; onSelect: (id: string) => void }) {
+  return (
+    <div className="overflow-x-auto border bg-card">
+      <table className="w-full min-w-[560px] text-sm">
+        <thead className="border-b bg-muted/60">
+          <tr>
+            {["Message", "Sent", "Delivered", "Clicks", "Bookings", "Cost"].map((h, i) => (
+              <th key={h} scope="col" className={cn("px-3 py-2 text-xs font-medium whitespace-nowrap text-muted-foreground", i === 0 ? "text-left" : "text-right")}>
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y">
+          {perf.map((p) => {
+            const tracked = p.clicks !== null;
+            const isBest = best === p.step.id;
+            return (
+              <tr
+                key={p.step.id}
+                onClick={() => onSelect(p.step.id)}
+                className={cn("cursor-pointer transition hover:bg-muted/50", isBest && "bg-success-soft/40 hover:bg-success-soft/60")}
+              >
+                <td className="px-3 py-2.5">
+                  <div className="flex items-center gap-1.5 font-medium">
+                    {p.step.name}
+                    {isBest && (
+                      <span className="inline-flex items-center gap-1 rounded-sm bg-success px-1.5 py-0.5 text-[11px] font-medium text-success-foreground">
+                        <Trophy className="size-3" /> Best
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-muted-foreground">{p.step.delay}</div>
+                </td>
+                <td className="px-3 py-2.5 text-right num">{fmt(p.sent)}</td>
+                <td className="px-3 py-2.5 text-right num">
+                  {fmt(p.delivered)} <span className="text-xs text-muted-foreground">({pct(p.delivered, p.sent)})</span>
+                </td>
+                <td className="px-3 py-2.5 text-right num">
+                  {tracked ? <>{fmt(p.clicks)} <span className="text-xs text-muted-foreground">({pct(p.clicks ?? 0, p.delivered)})</span></> : "—"}
+                </td>
+                <td className="px-3 py-2.5 text-right num">
+                  {tracked ? <>{fmt(p.bookings)} <span className="text-xs text-muted-foreground">({pct(p.bookings ?? 0, p.delivered)})</span></> : "—"}
+                </td>
+                <td className="px-3 py-2.5 text-right whitespace-nowrap num">{money(p.cost)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** Pop-up for one message: what was sent and why it performed the way it did. */
+function MessageDetailDialog({ c, stepId, onClose }: { c: Campaign; stepId: string | null; onClose: () => void }) {
+  const perf = stepPerf(c);
+  const p = perf.find((x) => x.step.id === stepId) ?? null;
+
+  return (
+    <Dialog open={!!p} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto" aria-describedby={undefined}>
+        {p && (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-lg">{p.step.name} · {c.name}</DialogTitle>
+              <DialogDescription>{p.step.delay} · what was sent and why it performed this way</DialogDescription>
+            </DialogHeader>
+
+            <div className="grid grid-cols-2 gap-3 border bg-card p-4 sm:grid-cols-5">
+              <Metric label="Sent" value={fmt(p.sent)} />
+              <Metric label="Delivered" value={fmt(p.delivered)} hint={pct(p.delivered, p.sent)} />
+              <Metric label="Clicks" value={fmt(p.clicks)} hint={p.clicks !== null ? pct(p.clicks, p.delivered) : "not tracked"} />
+              <Metric label="Bookings" value={fmt(p.bookings)} hint={p.bookings !== null ? pct(p.bookings, p.delivered) : "not tracked"} />
+              <Metric label="Cost" value={money(p.cost)} />
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Key insights</h4>
+                {keyInsights(c, p.step.id).map((i, idx) => (
+                  <div key={idx} className="border bg-card p-3">
+                    <span className={cn("inline-flex rounded-sm px-1.5 py-0.5 text-[11px] font-medium", kindTone[i.kind])}>{kindLabel[i.kind]}</span>
+                    <p className="mt-1.5 text-sm font-medium">{i.title}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{i.detail}</p>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Message mockups</h4>
+                <Tabs defaultValue={p.step.text ? "text" : "email"} className="mt-2">
+                  {p.step.text && p.step.email && (
+                    <TabsList>
+                      <TabsTrigger value="text">Text</TabsTrigger>
+                      <TabsTrigger value="email">Email</TabsTrigger>
+                    </TabsList>
+                  )}
+                  {p.step.text && (
+                    <TabsContent value="text" className="mt-3"><TextPreview m={p.step.text} /></TabsContent>
+                  )}
+                  {p.step.email && (
+                    <TabsContent value="email" className="mt-3"><EmailPreview t={p.step.email} device="desktop" /></TabsContent>
+                  )}
+                </Tabs>
+              </div>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
 export function ResultsDialog({ c, onClose }: { c: Campaign | null; onClose: () => void }) {
   const perf = c ? stepPerf(c) : [];
   const best = c ? bestStepId(perf) : null;
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = perf.find((p) => p.step.id === (selectedId ?? best)) ?? perf[0];
+  const [perfView, setPerfView] = useState<"table" | "cards">("table");
+  const [detailId, setDetailId] = useState<string | null>(null);
   const t = c ? campaignTotals(c) : null;
+  const general = c ? campaignInsight(c) : null;
 
   return (
     <Dialog open={!!c} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto" aria-describedby={undefined}>
-        {c && t && selected && (
+      <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto" aria-describedby={undefined}>
+        {c && t && general && (
           <>
             <DialogHeader>
               <DialogTitle className="text-lg">Results · {c.name}</DialogTitle>
@@ -128,51 +250,46 @@ export function ResultsDialog({ c, onClose }: { c: Campaign | null; onClose: () 
               <Metric label={c.costIsEstimate ? "Est. cost" : "Cost"} value={money(t.cost)} />
             </div>
 
-            <section aria-label="Message performance" className="mt-2">
-              <h3 className="text-sm font-semibold">Message performance</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">Which message did better. Select one to see what was sent and why it worked.</p>
-              <div className="mt-3 space-y-2">
-                {perf.map((p) => (
-                  <PerfRow key={p.step.id} p={p} selected={selected.step.id === p.step.id} best={best === p.step.id} onSelect={() => setSelectedId(p.step.id)} />
-                ))}
-              </div>
-            </section>
-
-            <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_260px]">
-              <section aria-label="Selected message detail">
-                <h3 className="text-sm font-semibold">{selected.step.name} — what was sent & why it worked</h3>
-                <div className="mt-3 grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Key insights</h4>
-                    {keyInsights(c, selected.step.id).map((i, idx) => (
-                      <div key={idx} className="border bg-card p-3">
-                        <span className={cn("inline-flex rounded-sm px-1.5 py-0.5 text-[11px] font-medium", kindTone[i.kind])}>{kindLabel[i.kind]}</span>
-                        <p className="mt-1.5 text-sm font-medium">{i.title}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{i.detail}</p>
-                      </div>
+            <div className="mt-4 grid items-start gap-4 lg:grid-cols-[1fr_280px]">
+              <section aria-label="Message performance">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h3 className="text-sm font-semibold">Message performance</h3>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Which message did better. Open one to see what was sent and why it worked.</p>
+                  </div>
+                  <div className="flex rounded-sm border bg-card p-0.5" role="group" aria-label="Message performance view">
+                    {([["table", "Table", Rows3], ["cards", "Cards", LayoutList]] as const).map(([v, label, Icon]) => (
+                      <button
+                        key={v}
+                        aria-pressed={perfView === v}
+                        onClick={() => setPerfView(v)}
+                        className={cn("flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-sm", perfView === v ? "bg-primary-soft font-medium text-primary" : "text-muted-foreground hover:text-foreground")}
+                      >
+                        <Icon className="size-4" strokeWidth={1.75} /> {label}
+                      </button>
                     ))}
                   </div>
-                  <div>
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Message mockups</h4>
-                    <Tabs defaultValue={selected.step.text ? "text" : "email"} className="mt-2">
-                      {selected.step.text && selected.step.email && (
-                        <TabsList>
-                          <TabsTrigger value="text">Text</TabsTrigger>
-                          <TabsTrigger value="email">Email</TabsTrigger>
-                        </TabsList>
-                      )}
-                      {selected.step.text && (
-                        <TabsContent value="text" className="mt-3"><TextPreview m={selected.step.text} /></TabsContent>
-                      )}
-                      {selected.step.email && (
-                        <TabsContent value="email" className="mt-3"><EmailPreview t={selected.step.email} device="desktop" /></TabsContent>
-                      )}
-                    </Tabs>
-                  </div>
+                </div>
+                <div className="mt-3">
+                  {perfView === "table" ? (
+                    <PerfTable perf={perf} best={best} onSelect={setDetailId} />
+                  ) : (
+                    <PerfCards perf={perf} best={best} onSelect={setDetailId} />
+                  )}
                 </div>
               </section>
               <aside><Funnel c={c} /></aside>
             </div>
+
+            <div className="mt-4 border border-primary/25 bg-primary-soft/40 p-4">
+              <h3 className="flex items-center gap-1.5 text-sm font-semibold">
+                <Lightbulb className="size-4 text-primary" strokeWidth={1.75} /> Key insight
+              </h3>
+              <p className="mt-1.5 text-sm font-medium">{general.title}</p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{general.detail}</p>
+            </div>
+
+            <MessageDetailDialog c={c} stepId={detailId} onClose={() => setDetailId(null)} />
           </>
         )}
       </DialogContent>

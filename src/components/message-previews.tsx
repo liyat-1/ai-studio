@@ -11,9 +11,8 @@ export function EmailPreview({ t, device }: { t: EmailTemplate; device: "desktop
   return (
     <div className={cn("mx-auto transition-[max-width]", device === "desktop" ? "max-w-[640px]" : "max-w-[375px]")}>
       <div className="mb-3 border bg-card px-4 py-3 text-sm">
-        <div className="flex gap-2"><span className="w-16 shrink-0 text-muted-foreground">From</span><span className="truncate"><b className="font-medium">{t.senderName}</b> &lt;{t.senderAddress}&gt;</span></div>
-        <div className="mt-1 flex gap-2"><span className="w-16 shrink-0 text-muted-foreground">Subject</span><span className="font-medium">{fill(t.subject)}</span></div>
-        <div className="mt-1 flex gap-2"><span className="w-16 shrink-0 text-muted-foreground">Preview</span><span className="text-muted-foreground">{t.previewText}</span></div>
+        <div className="flex gap-2"><span className="w-24 shrink-0 text-muted-foreground">Subject</span><span className="font-medium">{fill(t.subject)}</span></div>
+        <div className="mt-1 flex gap-2"><span className="w-24 shrink-0 text-muted-foreground">Preheader</span><span className="text-muted-foreground">{t.previewText}</span></div>
       </div>
 
       <article className="email-canvas bg-card text-[15px] leading-relaxed text-foreground" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
@@ -63,7 +62,6 @@ export function TextPreview({ m }: { m: TextMessage }) {
         </div>
       </div>
       <dl className="w-56 space-y-3 text-sm">
-        <div><dt className="text-xs text-muted-foreground">Raw message</dt><dd className="mt-1 font-mono text-xs leading-relaxed">{m.body}</dd></div>
         <div><dt className="text-xs text-muted-foreground">Length</dt><dd className="num">{m.body.length} characters · {m.segments} segment</dd></div>
         <div><dt className="text-xs text-muted-foreground">Personalization</dt><dd>{"{first_name}"} shown as “Olivia”</dd></div>
         <div><dt className="text-xs text-muted-foreground">Opt-out</dt><dd>Included (Reply STOP)</dd></div>

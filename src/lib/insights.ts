@@ -1,4 +1,4 @@
-import { type Campaign, type Step, pct, stepTotals } from "./campaigns";
+import { type Campaign, type Step, fmt, pct, stepTotals } from "./campaigns";
 
 export interface StepPerf {
   step: Step;
@@ -143,4 +143,35 @@ export function keyInsights(c: Campaign, stepId: string): Insight[] {
     if (b) out.push({ kind: "next", title: "What to change", detail: `Borrow from ${b.step.name}, the strongest message in this sequence${hasMedia(b.step) ? " — especially its media" : ""}.` });
   }
   return out;
+}
+
+/** One plain-language read on the whole campaign: who it targets and how it did. */
+export function campaignInsight(c: Campaign): Insight {
+  const perf = stepPerf(c);
+  const notReached = c.eligible - c.reached;
+
+  if (c.status === "draft" || c.status === "scheduled" || c.reached === 0) {
+    return {
+      kind: "next",
+      title: "Nothing to report yet",
+      detail: `“${c.name}” targets ${c.audience.toLowerCase()} (${fmt(c.eligible)} eligible guests) and ${c.status === "draft" ? "is still a draft" : "hasn’t started sending"}. Check back once the first messages go out.`,
+    };
+  }
+
+  const f = (n: number) => `${(n * 100).toFixed(1)}%`;
+  const best = bestStepId(perf);
+  const bestPerf = best ? perf.find((p) => p.step.id === best) : null;
+  const reachNote = notReached > 0 ? ` ${fmt(notReached)} guests couldn’t be reached (missing or invalid contact details).` : "";
+
+  const body = [
+    `“${c.name}” targets ${c.audience.toLowerCase()} (${fmt(c.eligible)} eligible guests) and reached ${fmt(c.reached)} of them — a ${f(c.reached / c.eligible)} reach rate.${reachNote}`,
+    c.funnel.delivered > 0
+      ? `Of the ${fmt(c.funnel.delivered)} guests who received a message, ${pct(c.funnel.clicked, c.funnel.delivered)} clicked through and ${pct(c.funnel.booked, c.funnel.delivered)} booked (${fmt(c.funnel.booked)} bookings).`
+      : null,
+    bestPerf
+      ? `${bestPerf.step.name} was the strongest message in the sequence — it converted ${f(bestPerf.bookingRate!)} of its delivered guests into bookings. Open it below to see what it did right.`
+      : null,
+  ].filter(Boolean);
+
+  return { kind: "result", title: "How this campaign is doing", detail: body.join(" ") };
 }
