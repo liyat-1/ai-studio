@@ -341,7 +341,7 @@ function Insights({ c, step }: { c: Campaign; step: Step }) {
   const tot = stepTotals(step);
   if (tot.clicks !== null) items.push(`This step generated ${fmt(tot.clicks)} tracked clicks across all channels.`);
   if (step.id === "initial" || items.length === 0) return items.length ? <InsightList items={items} /> : null;
-  const prev = c.steps[c.steps.indexOf(step) - 1];
+  const prev = c.steps[c.steps.indexOf(step) - 1]!;
   items.push(`Eligibility changed from ${fmt(prev.eligible)} (${prev.name}) to ${fmt(step.eligible)} based on stop conditions.`);
   return <InsightList items={items} />;
 }
@@ -376,7 +376,7 @@ function GuestActivity({ c }: { c: Campaign }) {
     ...(tracked ? [{ k: "clicked", l: "Clicked", fn: (g: Guest) => g.clicked }, { k: "booked", l: "Booked", fn: (g: Guest) => g.booked }] : []),
     { k: "failed", l: "Delivery failed", fn: (g) => Object.values(g.stepStatus).includes("failed") },
   ];
-  const active = filters.find((f) => f.k === filter) ?? filters[0];
+  const active = filters.find((f) => f.k === filter) ?? filters[0]!;
   const rows = guests.filter(active.fn);
   const ts = (s?: string) => (s ? new Date(s).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—");
 
@@ -424,7 +424,7 @@ function GuestActivity({ c }: { c: Campaign }) {
                     <div className="text-xs text-muted-foreground">{g.contact}</div>
                   </td>
                   <td className="px-3 py-2 capitalize">{g.channel}</td>
-                  {c.steps.map((s) => <td key={s.id} className={cn("px-3 py-2", stateCls[g.stepStatus[s.id]])}>{stateLabel[g.stepStatus[s.id]]}</td>)}
+                  {c.steps.map((s) => { const st = g.stepStatus[s.id] ?? "not_sent"; return <td key={s.id} className={cn("px-3 py-2", stateCls[st])}>{stateLabel[st]}</td>; })}
                   {tracked && <td className="px-3 py-2">{g.clicked ? "Yes" : "No"}</td>}
                   {tracked && <td className="px-3 py-2">{g.booked ? <span className="font-medium text-success">Booked</span> : "No"}</td>}
                   <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">{ts(g.lastActivity)}</td>
