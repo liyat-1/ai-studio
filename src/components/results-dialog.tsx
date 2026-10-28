@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { ChevronRight, LayoutList, Lightbulb, Rows3, Trophy } from "lucide-react";
+import { ChevronRight, Copy, LayoutList, Lightbulb, Rows3, Trophy } from "lucide-react";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Metric } from "@/components/campaign-bits";
 import { EmailPreview, TextPreview } from "@/components/message-previews";
-import { type Campaign, campaignTotals, fmt, money, pct } from "@/lib/campaigns";
+import { type Campaign, type Channel, campaignTotals, fmt, money, pct } from "@/lib/campaigns";
 import { bestStepId, campaignInsight, keyInsights, stepPerf, type StepPerf } from "@/lib/insights";
 import { cn } from "@/lib/utils";
 
@@ -165,9 +166,12 @@ function PerfTable({ perf, best, onSelect }: { perf: StepPerf[]; best: string | 
 }
 
 /** Pop-up for one message: what was sent and why it performed the way it did. */
-function MessageDetailDialog({ c, stepId, onClose }: { c: Campaign; stepId: string | null; onClose: () => void }) {
+function MessageDetailDialog({ c, stepId, onClose, onClone }: { c: Campaign; stepId: string | null; onClose: () => void; onClone: (c: Campaign, stepId: string) => void }) {
   const perf = stepPerf(c);
   const p = perf.find((x) => x.step.id === stepId) ?? null;
+  const both = p?.step.text && p?.step.email;
+  const [channel, setChannel] = useState<Channel>("text");
+  const active: Channel = p ? (both ? channel : p.step.text ? "text" : "email") : "text";
 
   return (
     <Dialog open={!!p} onOpenChange={(o) => !o && onClose()}>
@@ -187,35 +191,36 @@ function MessageDetailDialog({ c, stepId, onClose }: { c: Campaign; stepId: stri
               <Metric label="Cost" value={money(p.cost)} />
             </div>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Key insights</h4>
-                {keyInsights(c, p.step.id).map((i, idx) => (
-                  <div key={idx} className="border bg-card p-3">
-                    <span className={cn("inline-flex rounded-sm px-1.5 py-0.5 text-[11px] font-medium", kindTone[i.kind])}>{kindLabel[i.kind]}</span>
-                    <p className="mt-1.5 text-sm font-medium">{i.title}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{i.detail}</p>
-                  </div>
-                ))}
+            <Tabs value={active} onValueChange={(v) => setChannel(v as Channel)} className="mt-4">
+              {both && (
+                <TabsList>
+                  <TabsTrigger value="text">Text message</TabsTrigger>
+                  <TabsTrigger value="email">Email</TabsTrigger>
+                </TabsList>
+              )}
+              <div className="mt-3 grid items-start gap-4 md:grid-cols-2">
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Message mockup</h4>
+                  <TabsContent value="text" className="mt-2">{p.step.text && <TextPreview m={p.step.text} />}</TabsContent>
+                  <TabsContent value="email" className="mt-2">{p.step.email && <EmailPreview t={p.step.email} device="desktop" />}</TabsContent>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Key insights{both ? ` · ${active === "text" ? "text" : "email"}` : ""}</h4>
+                  {keyInsights(c, p.step.id, active).map((i, idx) => (
+                    <div key={idx} className="border bg-card p-3">
+                      <span className={cn("inline-flex rounded-sm px-1.5 py-0.5 text-[11px] font-medium", kindTone[i.kind])}>{kindLabel[i.kind]}</span>
+                      <p className="mt-1.5 text-sm font-medium">{i.title}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{i.detail}</p>
+                      {i.kind === "next" && (
+                        <Button size="sm" variant="outline" className="mt-2.5" onClick={() => onClone(c, p.step.id)}>
+                          <Copy /> Clone into a new campaign
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Message mockups</h4>
-                <Tabs defaultValue={p.step.text ? "text" : "email"} className="mt-2">
-                  {p.step.text && p.step.email && (
-                    <TabsList>
-                      <TabsTrigger value="text">Text</TabsTrigger>
-                      <TabsTrigger value="email">Email</TabsTrigger>
-                    </TabsList>
-                  )}
-                  {p.step.text && (
-                    <TabsContent value="text" className="mt-3"><TextPreview m={p.step.text} /></TabsContent>
-                  )}
-                  {p.step.email && (
-                    <TabsContent value="email" className="mt-3"><EmailPreview t={p.step.email} device="desktop" /></TabsContent>
-                  )}
-                </Tabs>
-              </div>
-            </div>
+            </Tabs>
           </>
         )}
       </DialogContent>
