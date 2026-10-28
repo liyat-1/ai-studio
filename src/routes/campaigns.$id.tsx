@@ -177,7 +177,7 @@ function MessagePerformance({ c }: { c: Campaign }) {
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-x-6 gap-y-4 border-y bg-card px-5 py-4 sm:grid-cols-4 md:grid-cols-8">
+          <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-4 border-y bg-card px-5 py-4 sm:grid-cols-4 lg:grid-cols-8 xl:grid-cols-4">
             <Metric label="Eligible guests" value={fmt(step.eligible)} hint="Guests" />
             <Metric label="Sent" value={fmt(stats.sent)} hint="Messages" />
             <Metric label="Delivered" value={fmt(stats.delivered)} />
