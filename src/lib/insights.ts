@@ -178,5 +178,5 @@ export function campaignInsight(c: Campaign): Insight {
       : null,
   ].filter(Boolean);
 
-  return { kind: "result", title: "How this campaign is doing", detail: body.join(" ") };
+  return { kind: "result", title: "How this campaign is doing", detail: body.join("\n") };
 }

@@ -228,7 +228,7 @@ function MessageDetailDialog({ c, stepId, onClose, onClone }: { c: Campaign; ste
   );
 }
 
-export function ResultsDialog({ c, onClose }: { c: Campaign | null; onClose: () => void }) {
+export function ResultsDialog({ c, onClose, onClone }: { c: Campaign | null; onClose: () => void; onClone: (c: Campaign, stepId: string) => void }) {
   const perf = c ? stepPerf(c) : [];
   const best = c ? bestStepId(perf) : null;
   const [perfView, setPerfView] = useState<"table" | "cards">("table");
@@ -288,13 +288,19 @@ export function ResultsDialog({ c, onClose }: { c: Campaign | null; onClose: () 
 
             <div className="mt-4 border border-primary/25 bg-primary-soft/40 p-4">
               <h3 className="flex items-center gap-1.5 text-sm font-semibold">
-                <Lightbulb className="size-4 text-primary" strokeWidth={1.75} /> Key insight
+                <Lightbulb className="size-4 text-primary" strokeWidth={1.75} /> Key insight · {general.title}
               </h3>
-              <p className="mt-1.5 text-sm font-medium">{general.title}</p>
-              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{general.detail}</p>
+              <ul className="mt-2.5 space-y-2">
+                {general.detail.split("\n").map((line, i) => (
+                  <li key={i} className="flex gap-2 text-sm leading-relaxed text-muted-foreground">
+                    <span className="mt-[7px] size-1.5 shrink-0 rounded-[1px] bg-primary" aria-hidden />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <MessageDetailDialog c={c} stepId={detailId} onClose={() => setDetailId(null)} />
+            <MessageDetailDialog c={c} stepId={detailId} onClose={() => setDetailId(null)} onClone={onClone} />
           </>
         )}
       </DialogContent>
