@@ -1,17 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowDown, ArrowUp, Copy, FlaskConical, LayoutList, MoreHorizontal, Plus, Rows3, Search, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, FlaskConical, LayoutList, Plus, Rows3, Search, Trash2, Trophy } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ReachBar, StatusLabel, VolumeInfo } from "@/components/campaign-bits";
 import {
-  type Campaign, type CampaignStatus, type ChannelStrategy, CHANNEL_LABEL, STATUS_LABEL, campaignTotals, campaigns as seed, fmt, fmtDate, money,
+  type Campaign, type CampaignStatus, type ChannelStrategy, CHANNEL_LABEL, STATUS_LABEL, bookingRate, campaignTotals, campaigns as seed, fmt, fmtDate, money,
+  topCampaignId,
 } from "@/lib/campaigns";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +55,8 @@ function CampaignsPage() {
       ),
     [list, search],
   );
+
+  const topId = useMemo(() => topCampaignId(filtered), [filtered]);
 
   const actions = {
     test: (c: Campaign) => toast.success(`Test message for “${c.name}” sent to your phone`),
@@ -124,11 +126,11 @@ function CampaignsPage() {
           <Button variant="outline" className="mt-4" onClick={() => navigate({ search: { q: "", status: "all", channel: "all", view: search.view }, replace: true })}>Clear filters</Button>
         </div>
       ) : view === "card" ? (
-        <ul className="mt-3 flex flex-col gap-3">
-          {filtered.map((c) => <CampaignCard key={c.id} c={c} actions={actions} />)}
+        <ul className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((c) => <CampaignCard key={c.id} c={c} actions={actions} top={c.id === topId} />)}
         </ul>
       ) : (
-        <CampaignTable rows={filtered} actions={actions} />
+        <CampaignTable rows={filtered} actions={actions} topId={topId} />
       )}
 
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
