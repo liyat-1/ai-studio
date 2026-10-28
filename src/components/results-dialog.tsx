@@ -18,17 +18,11 @@ const kindTone: Record<string, string> = {
 const kindLabel: Record<string, string> = { result: "Result", content: "Content", next: "Next time" };
 
 function Funnel({ c }: { c: Campaign }) {
-  const t = campaignTotals(c);
-  const sum = (k: "clicks" | "bookings") =>
-    t.steps.every((s) => s[k] === null) ? null : t.steps.reduce<number>((a, s) => a + (s[k] ?? 0), 0);
-  const clicks = sum("clicks");
-  const bookings = sum("bookings");
-  const delivered = t.steps.reduce((a, s) => a + s.delivered, 0);
   const stages = [
     { label: "Reached", n: c.reached as number | null, conv: null as string | null },
-    { label: "Delivered", n: delivered, conv: c.reached ? pct(delivered, c.reached) : null },
-    { label: "Clicked", n: clicks, conv: delivered ? (clicks === null ? null : pct(clicks, delivered)) : null },
-    { label: "Booked", n: bookings, conv: delivered ? (bookings === null ? null : pct(bookings, delivered)) : null },
+    { label: "Delivered", n: c.funnel.delivered, conv: c.reached ? pct(c.funnel.delivered, c.reached) : null },
+    { label: "Clicked", n: c.funnel.clicked, conv: c.funnel.delivered ? pct(c.funnel.clicked, c.funnel.delivered) : null },
+    { label: "Booked", n: c.funnel.booked, conv: c.funnel.delivered ? pct(c.funnel.booked, c.funnel.delivered) : null },
   ];
   const base = c.reached || 1;
   return (
