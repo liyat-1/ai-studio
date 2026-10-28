@@ -208,7 +208,7 @@ function CampaignCard({ c, actions, top }: { c: Campaign; actions: Actions; top:
         </div>
       </dl>
 
-      <div className="mt-auto flex items-center gap-1.5 border-t pt-3" style={{ marginTop: "1rem" }}>
+      <div className="mt-auto flex items-center gap-1.5 border-t pt-3">
         <Button size="sm" className="flex-1" onClick={() => toast("Results pop-up is not finished yet")}>See results</Button>
         <Button size="sm" variant="outline" onClick={() => actions.test(c)}><FlaskConical /> Test</Button>
         <Button size="sm" variant="outline" onClick={() => actions.clone(c)}><Copy /> Clone</Button>
