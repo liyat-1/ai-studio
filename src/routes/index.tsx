@@ -169,7 +169,7 @@ function CampaignsPage() {
   );
 }
 
-type Actions = { test: (c: Campaign) => void; clone: (c: Campaign) => void; del: (c: Campaign) => void; results: (c: Campaign) => void };
+type Actions = { test: (c: Campaign) => void; clone: (c: Campaign, stepId?: string) => void; del: (c: Campaign) => void; results: (c: Campaign) => void };
 
 function CampaignCard({ c, actions }: { c: Campaign; actions: Actions }) {
   const t = campaignTotals(c);
@@ -239,6 +239,10 @@ type SortKey = "name" | "eligible" | "reached" | "sent" | "cost" | "createdAt";
 
 function CampaignTable({ rows, actions }: { rows: Campaign[]; actions: Actions }) {
   const [sort, setSort] = useState<{ k: SortKey; dir: 1 | -1 }>({ k: "createdAt", dir: -1 });
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const toggle = (id: string, on: boolean) =>
+    setSelected((s) => { const n = new Set(s); if (on) n.add(id); else n.delete(id); return n; });
+  const allChecked = rows.length > 0 && rows.every((r) => selected.has(r.id));
   const data = rows.map((c) => ({ c, t: campaignTotals(c) }));
   const val = (r: (typeof data)[number]): string | number =>
     sort.k === "name" ? r.c.name : sort.k === "eligible" ? r.c.eligible : sort.k === "reached" ? r.c.reached : sort.k === "sent" ? r.t.totalSent : sort.k === "cost" ? r.t.cost ?? -1 : r.c.createdAt;
