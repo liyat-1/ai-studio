@@ -107,11 +107,11 @@ function SummaryItem({ label, value, hint }: { label: string; value: string; hin
 /* ---------------- Message performance ---------------- */
 
 function MessagePerformance({ c }: { c: Campaign }) {
-  const [stepId, setStepId] = useState(c.steps[0].id);
+  const [stepId, setStepId] = useState(c.steps[0]!.id);
   const step = c.steps.find((s) => s.id === stepId)!;
   const channels = Object.keys(step.channels) as Channel[];
-  const [chSel, setCh] = useState<Channel>(channels[0]);
-  const ch = channels.includes(chSel) ? chSel : channels[0];
+  const [chSel, setCh] = useState<Channel>(channels[0]!);
+  const ch = channels.includes(chSel) ? chSel : channels[0]!;
   const stats = step.channels[ch]!;
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const tot = stepTotals(step);
