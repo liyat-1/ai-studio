@@ -42,6 +42,7 @@ function CampaignsPage() {
   const navigate = useNavigate({ from: "/" });
   const [list, setList] = useState<Campaign[]>(seed);
   const [toDelete, setToDelete] = useState<Campaign | null>(null);
+  const [resultsFor, setResultsFor] = useState<Campaign | null>(null);
   const view = search.view ?? "card";
   const set = (p: Partial<Search>) => navigate({ search: (prev) => ({ ...prev, ...p }), replace: true });
 
@@ -133,6 +134,8 @@ function CampaignsPage() {
         <CampaignTable rows={filtered} actions={actions} topId={topId} />
       )}
 
+      <ResultsDialog key={resultsFor?.id ?? "none"} c={resultsFor} onClose={() => setResultsFor(null)} />
+
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -209,7 +212,7 @@ function CampaignCard({ c, actions, top }: { c: Campaign; actions: Actions; top:
       </dl>
 
       <div className="mt-auto border-t pt-3">
-        <Button size="sm" className="w-full" onClick={() => toast("Results pop-up is not finished yet")}>See results</Button>
+        <Button size="sm" className="w-full" onClick={() => setResultsFor(c)}>See results</Button>
         <div className="mt-2 grid grid-cols-3 gap-1.5">
           <Button size="sm" variant="outline" onClick={() => actions.test(c)}><FlaskConical /> Test</Button>
           <Button size="sm" variant="outline" onClick={() => actions.clone(c)}><Copy /> Clone</Button>
@@ -288,7 +291,7 @@ function CampaignTable({ rows, actions, topId }: { rows: Campaign[]; actions: Ac
               </td>
               <td className="sticky right-0 border-l bg-card px-3 py-2 text-right whitespace-nowrap">
                 <div className="inline-flex items-center justify-end gap-1.5">
-                  <Button size="sm" onClick={() => toast("Results pop-up is not finished yet")}>See results</Button>
+                  <Button size="sm" onClick={() => setResultsFor(c)}>See results</Button>
                   <Button size="sm" variant="outline" onClick={() => actions.test(c)}><FlaskConical /> Test</Button>
                   <Button size="sm" variant="outline" onClick={() => actions.clone(c)}><Copy /> Clone</Button>
                   <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive-soft hover:text-destructive" onClick={() => actions.del(c)}>
