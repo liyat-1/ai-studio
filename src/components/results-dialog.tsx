@@ -22,7 +22,7 @@ function Funnel({ c }: { c: Campaign }) {
     { label: "Reached", n: c.reached as number | null, conv: null as string | null },
     { label: "Delivered", n: c.funnel.delivered, conv: c.reached ? pct(c.funnel.delivered, c.reached) : null },
     { label: "Clicked", n: c.funnel.clicked, conv: c.funnel.delivered ? pct(c.funnel.clicked, c.funnel.delivered) : null },
-    { label: "Booked", n: c.funnel.booked, conv: c.funnel.delivered ? pct(c.funnel.booked, c.funnel.delivered) : null },
+    { label: "Booked", n: c.funnel.booked, conv: c.funnel.clicked ? pct(c.funnel.booked, c.funnel.clicked) : null },
   ];
   const base = c.reached || 1;
   return (
