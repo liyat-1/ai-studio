@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowDown, ArrowUp, Copy, FlaskConical, LayoutList, MoreHorizontal, Plus, Rows3, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -209,9 +209,7 @@ function CampaignCard({ c, actions }: { c: Campaign; actions: Actions }) {
           </div>
         </dl>
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/campaigns/$id" params={{ id: c.id }}>See results</Link>
-          </Button>
+          <Button size="sm" onClick={() => toast("Results pop-up is not finished yet")}>See results</Button>
           <MoreMenu c={c} actions={actions} />
         </div>
       </div>
@@ -277,9 +275,7 @@ function CampaignTable({ rows, actions }: { rows: Campaign[]; actions: Actions }
                 {c.costIsEstimate && <span className="ml-1 text-xs text-muted-foreground">est.</span>}
               </td>
               <td className="px-3 py-2 text-right whitespace-nowrap">
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/campaigns/$id" params={{ id: c.id }}>See results</Link>
-                </Button>
+                <Button size="sm" onClick={() => toast("Results pop-up is not finished yet")}>See results</Button>
                 <MoreMenu c={c} actions={actions} />
               </td>
             </tr>
