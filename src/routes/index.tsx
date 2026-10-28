@@ -200,9 +200,9 @@ function CampaignCard({ c, actions }: { c: Campaign; actions: Actions }) {
       <div className="mt-auto border-t pt-3">
         <div className="flex items-center gap-1.5">
           <Button size="sm" className="flex-1" onClick={() => actions.results(c)}>See results</Button>
-          <Button size="icon-sm" variant="outline" aria-label={`Test ${c.name}`} onClick={() => actions.test(c)}><FlaskConical /></Button>
-          <Button size="icon-sm" variant="outline" aria-label={`Clone ${c.name}`} onClick={() => actions.clone(c)}><Copy /></Button>
-          <Button size="icon-sm" variant="outline" aria-label={`Delete ${c.name}`} className="text-destructive hover:bg-destructive-soft hover:text-destructive" onClick={() => actions.del(c)}>
+          <Button size="icon" variant="outline" aria-label={`Test ${c.name}`} onClick={() => actions.test(c)}><FlaskConical /></Button>
+          <Button size="icon" variant="outline" aria-label={`Clone ${c.name}`} onClick={() => actions.clone(c)}><Copy /></Button>
+          <Button size="icon" variant="outline" aria-label={`Delete ${c.name}`} className="text-destructive hover:bg-destructive-soft hover:text-destructive" onClick={() => actions.del(c)}>
             <Trash2 />
           </Button>
         </div>
@@ -276,7 +276,7 @@ function CampaignTable({ rows, actions }: { rows: Campaign[]; actions: Actions }
               <td className="sticky right-0 border-l bg-card px-3 py-2 text-right whitespace-nowrap">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="icon-sm" variant="outline" aria-label={`Actions for ${c.name}`}>
+                    <Button size="icon" variant="outline" aria-label={`Actions for ${c.name}`}>
                       <MoreHorizontal />
                     </Button>
                   </DropdownMenuTrigger>
