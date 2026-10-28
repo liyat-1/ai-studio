@@ -208,7 +208,7 @@ function CampaignCard({ c, actions, top }: { c: Campaign; actions: Actions; top:
         </div>
       </dl>
 
-      <div className="mt-auto flex items-center gap-1.5 border-t pt-3 [margin-top:1rem]">
+      <div className="mt-auto flex items-center gap-1.5 border-t pt-3" style={{ marginTop: "1rem" }}>
         <Button size="sm" className="flex-1" onClick={() => toast("Results pop-up is not finished yet")}>See results</Button>
         <Button size="sm" variant="outline" onClick={() => actions.test(c)}><FlaskConical /> Test</Button>
         <Button size="sm" variant="outline" onClick={() => actions.clone(c)}><Copy /> Clone</Button>
@@ -222,7 +222,7 @@ function CampaignCard({ c, actions, top }: { c: Campaign; actions: Actions; top:
 
 type SortKey = "name" | "eligible" | "reached" | "sent" | "cost" | "createdAt";
 
-function CampaignTable({ rows, actions }: { rows: Campaign[]; actions: Actions }) {
+function CampaignTable({ rows, actions, topId }: { rows: Campaign[]; actions: Actions; topId: string | null }) {
   const [sort, setSort] = useState<{ k: SortKey; dir: 1 | -1 }>({ k: "createdAt", dir: -1 });
   const data = rows.map((c) => ({ c, t: campaignTotals(c) }));
   const val = (r: (typeof data)[number]): string | number =>
