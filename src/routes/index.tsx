@@ -242,7 +242,7 @@ function CampaignTable({ rows, actions, topId }: { rows: Campaign[]; actions: Ac
 
   return (
     <div className="mt-3 overflow-x-auto border bg-card">
-      <table className="w-full min-w-[1080px] text-sm">
+      <table className="w-full min-w-[1240px] text-sm">
         <thead className="border-b bg-muted/60">
           <tr>
             <H k="name">Campaign</H>
@@ -259,9 +259,16 @@ function CampaignTable({ rows, actions, topId }: { rows: Campaign[]; actions: Ac
         </thead>
         <tbody className="divide-y">
           {data.map(({ c, t }) => (
-            <tr key={c.id} className="hover:bg-muted/50 focus-within:bg-primary-soft/60">
+            <tr key={c.id} className={cn("hover:bg-muted/50 focus-within:bg-primary-soft/60", c.id === topId && "bg-primary-soft/50 hover:bg-primary-soft/70")}>
               <td className="px-3 py-2.5">
-                <div className="font-medium">{c.name}</div>
+                <div className="flex items-center gap-1.5 font-medium">
+                  {c.name}
+                  {c.id === topId && (
+                    <span className="inline-flex items-center gap-1 rounded-sm bg-primary px-1.5 py-0.5 text-[11px] font-medium text-primary-foreground">
+                      <Trophy className="size-3" /> Top performer
+                    </span>
+                  )}
+                </div>
                 <div className="text-xs text-muted-foreground">{t.followUps} follow-up{t.followUps === 1 ? "" : "s"}</div>
               </td>
               <td className="px-3 py-2.5 whitespace-nowrap">{c.createdBy}</td>
@@ -278,8 +285,14 @@ function CampaignTable({ rows, actions, topId }: { rows: Campaign[]; actions: Ac
                 {c.costIsEstimate && <span className="ml-1 text-xs text-muted-foreground">est.</span>}
               </td>
               <td className="px-3 py-2 text-right whitespace-nowrap">
-                <Button size="sm" onClick={() => toast("Results pop-up is not finished yet")}>See results</Button>
-                <MoreMenu c={c} actions={actions} />
+                <div className="inline-flex items-center justify-end gap-1.5">
+                  <Button size="sm" onClick={() => toast("Results pop-up is not finished yet")}>See results</Button>
+                  <Button size="sm" variant="outline" onClick={() => actions.test(c)}><FlaskConical /> Test</Button>
+                  <Button size="sm" variant="outline" onClick={() => actions.clone(c)}><Copy /> Clone</Button>
+                  <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive-soft hover:text-destructive" onClick={() => actions.del(c)}>
+                    <Trash2 /> Delete
+                  </Button>
+                </div>
               </td>
             </tr>
           ))}
