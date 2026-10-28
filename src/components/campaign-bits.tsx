@@ -1,4 +1,4 @@
-import { Info } from "lucide-react";
+import { Info, Repeat2 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,15 @@ export function StatusLabel({ status }: { status: CampaignStatus }) {
     <span className={cn("inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-xs font-medium whitespace-nowrap", statusTone[status])}>
       <span className="size-1.5 rounded-[1px] bg-current" aria-hidden />
       {STATUS_LABEL[status]}
+    </span>
+  );
+}
+
+/** Emoji icon for a campaign, in a soft tinted tile. */
+export function CampaignIcon({ icon, className }: { icon: string; className?: string }) {
+  return (
+    <span aria-hidden className={cn("inline-grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-base", className)}>
+      {icon}
     </span>
   );
 }
@@ -44,6 +53,7 @@ export function FollowUpChip({ n, className }: { n: number; className?: string }
         className,
       )}
     >
+      <Repeat2 className="size-3" strokeWidth={2} aria-hidden />
       {n === 0 ? "No follow-ups" : `${n} follow-up${n > 1 ? "s" : ""}`}
     </span>
   );
