@@ -260,7 +260,14 @@ function CampaignTable({ rows, actions }: { rows: Campaign[]; actions: Actions }
   );
 
   return (
-    <div className="mt-3 overflow-x-auto border bg-card">
+    <div className="mt-3">
+      {selected.size > 0 && (
+        <p className="mb-2 flex items-center gap-2 text-xs text-muted-foreground" role="status">
+          <span className="inline-flex items-center rounded-sm bg-primary-soft px-1.5 py-0.5 font-medium text-primary num">{selected.size} selected</span>
+          <button className="underline underline-offset-2 hover:text-foreground" onClick={() => setSelected(new Set())}>Clear selection</button>
+        </p>
+      )}
+      <div className="overflow-x-auto border bg-card">
       <table className="w-full min-w-[1240px] text-sm">
         <thead className="border-b bg-muted/60">
           <tr>
