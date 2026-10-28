@@ -176,30 +176,47 @@ function CampaignCard({ c, actions }: { c: Campaign; actions: Actions }) {
   return (
     <li className="flex flex-col border bg-card p-4 shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift">
       <div className="flex items-start justify-between gap-2">
-        <h2 className="text-[15px] font-semibold leading-snug">{c.name}</h2>
+        <div className="flex min-w-0 items-center gap-2.5">
+          <CampaignIcon icon={c.icon} />
+          <h2 className="min-w-0 text-[15px] font-semibold leading-snug">{c.name}</h2>
+        </div>
         <StatusLabel status={c.status} />
       </div>
-      <div className="mt-2 flex items-center gap-2">
-        <PersonAvatar name={c.createdBy} />
-        <p className="truncate text-xs text-muted-foreground">
-          {c.createdBy} · {fmtDate(c.createdAt)}
-        </p>
-      </div>
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <p className="truncate text-xs text-muted-foreground">{c.audience}</p>
+
+      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5">
+          <PersonAvatar name={c.createdBy} />
+          {c.createdBy}
+        </span>
+        <span className="truncate">{c.audience}</span>
+        <span>{CHANNEL_LABEL[c.channel]}</span>
         <FollowUpChip n={t.followUps} />
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">{CHANNEL_LABEL[c.channel]}</p>
 
       <div className="mt-4">
-        <div className="mb-2 text-xs text-muted-foreground">
-          Eligible guests <span className="ml-1 text-sm font-semibold text-foreground num">{fmt(c.eligible)}</span>
+        <div className="mb-2 flex items-baseline justify-between gap-2 text-xs text-muted-foreground">
+          <span>
+            <span className="text-sm font-semibold text-foreground num">{fmt(c.reached)}</span>/{fmt(c.eligible)} eligible guests reached
+          </span>
+          <span>{fmt(t.notReached)} not reached</span>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="min-w-0 flex-1"><ReachBar c={c} /></div>
-          <div className="shrink-0 text-right">
-            <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground">Sent <VolumeInfo c={c} /></div>
-            <div className="text-sm font-semibold num">{fmt(t.totalSent)}</div>
+        <ReachBar c={c} />
+      </div>
+
+      <div className="mt-3">
+        <div className="mb-1.5 flex items-center gap-1 text-xs text-muted-foreground">
+          Messages sent <VolumeInfo c={c} />
+        </div>
+        <div className={cn("grid gap-1.5", t.steps.length > 1 ? "grid-cols-3" : "grid-cols-2")}>
+          {t.steps.slice(0, 2).map((s) => (
+            <div key={s.step.id} className="border bg-muted/40 px-2 py-1.5">
+              <div className="truncate text-[11px] text-muted-foreground">{s.step.name}</div>
+              <div className="text-sm font-semibold num">{fmt(s.sent)}</div>
+            </div>
+          ))}
+          <div className="border border-primary/25 bg-primary-soft/50 px-2 py-1.5">
+            <div className="text-[11px] text-primary">Total</div>
+            <div className="text-sm font-semibold text-primary num">{fmt(t.totalSent)}</div>
           </div>
         </div>
       </div>
