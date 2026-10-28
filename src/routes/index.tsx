@@ -162,7 +162,7 @@ function CampaignsPage() {
   );
 }
 
-type Actions = { test: (c: Campaign) => void; clone: (c: Campaign) => void; del: (c: Campaign) => void };
+type Actions = { test: (c: Campaign) => void; clone: (c: Campaign) => void; del: (c: Campaign) => void; results: (c: Campaign) => void };
 
 function CampaignCard({ c, actions, top }: { c: Campaign; actions: Actions; top: boolean }) {
   const t = campaignTotals(c);
@@ -214,7 +214,7 @@ function CampaignCard({ c, actions, top }: { c: Campaign; actions: Actions; top:
       </dl>
 
       <div className="mt-auto border-t pt-3">
-        <Button size="sm" className="w-full" onClick={() => setResultsFor(c)}>See results</Button>
+        <Button size="sm" className="w-full" onClick={() => actions.results(c)}>See results</Button>
         <div className="mt-2 grid grid-cols-3 gap-1.5">
           <Button size="sm" variant="outline" onClick={() => actions.test(c)}><FlaskConical /> Test</Button>
           <Button size="sm" variant="outline" onClick={() => actions.clone(c)}><Copy /> Clone</Button>
@@ -293,7 +293,7 @@ function CampaignTable({ rows, actions, topId }: { rows: Campaign[]; actions: Ac
               </td>
               <td className="sticky right-0 border-l bg-card px-3 py-2 text-right whitespace-nowrap">
                 <div className="inline-flex items-center justify-end gap-1.5">
-                  <Button size="sm" onClick={() => setResultsFor(c)}>See results</Button>
+                  <Button size="sm" onClick={() => actions.results(c)}>See results</Button>
                   <Button size="sm" variant="outline" onClick={() => actions.test(c)}><FlaskConical /> Test</Button>
                   <Button size="sm" variant="outline" onClick={() => actions.clone(c)}><Copy /> Clone</Button>
                   <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive-soft hover:text-destructive" onClick={() => actions.del(c)}>
