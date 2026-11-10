@@ -41,12 +41,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               </>
             );
             if (!n.to) return <span key={n.label} title={collapsed ? n.label : undefined} className={cn(cls, "cursor-default opacity-60")}>{inner}</span>;
-            const active = path === n.to;
+            const active = n.to === "/ai-studio" ? path === "/ai-studio" || (path === "/" && introductionOpen) : path === n.to && !introductionOpen;
             return (
                 <Link
                 key={n.label}
                 to={n.to}
-                 search={n.to === "/" ? HOME_SEARCH : undefined}
+                 search={HOME_SEARCH}
+                 onClick={() => { if (n.to === "/") setIntroductionOpen(false); }}
                 title={collapsed ? n.label : undefined}
                 className={cn(cls, active ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground" : "hover:bg-sidebar-accent/60")}
               >
