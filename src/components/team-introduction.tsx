@@ -29,7 +29,7 @@ export function TeamIntroduction({ onContinue }: { onContinue: () => void }) {
             <h1 className="text-4xl font-medium leading-[1.15] sm:text-5xl">Your hotel. <span className="text-muted-foreground">A whole new team.</span></h1>
             <p className="mt-5 max-w-[500px] text-base leading-relaxed text-muted-foreground">Eight specialists. One shared goal: more meaningful guest connections and more direct bookings.</p>
           </div>
-          <Button onClick={onContinue} className="h-10">Explore campaigns <ArrowRight /></Button>
+          <Button onClick={onContinue} className="h-10">Ask Agent <ArrowRight /></Button>
         </div>
         <div className="mt-10 flex items-center justify-between gap-4 border-b pb-3 text-xs lg:mt-14"><span className="font-medium">Meet your specialists</span><span className="text-muted-foreground">Strategy to the final guest reply</span></div>
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -47,7 +47,7 @@ export function TeamIntroduction({ onContinue }: { onContinue: () => void }) {
       </div>
       <Dialog open={selected !== null} onOpenChange={(open) => { if (!open) setSelected(null); }}>
         <DialogContent className="max-w-[480px] bg-card p-7">
-          {selected && <><Portrait agent={selected} large /><div><p className="mb-2 text-xs font-medium text-primary">{selected.role}</p><DialogTitle className="text-2xl">{selected.name}</DialogTitle><DialogDescription className="mt-3 leading-relaxed">{selected.description}</DialogDescription></div><div className="border-t pt-4"><h2 className="mb-3 text-xs font-medium text-muted-foreground">WHAT I BRING TO YOUR TEAM</h2><ul className="space-y-3">{selected.tasks.map((task) => <li key={task} className="flex items-center gap-3 text-sm"><Check className="size-4 text-primary" />{task}</li>)}</ul></div><Button onClick={() => { setSelected(null); onContinue(); }} className="mt-2">Explore campaigns <ArrowRight /></Button></>}
+          {selected && <><Portrait agent={selected} large /><div><p className="mb-2 text-xs font-medium text-primary">{selected.role}</p><DialogTitle className="text-2xl">{selected.name}</DialogTitle><DialogDescription className="mt-3 leading-relaxed">{selected.description}</DialogDescription></div><div className="border-t pt-4"><h2 className="mb-3 text-xs font-medium text-muted-foreground">WHAT I BRING TO YOUR TEAM</h2><ul className="space-y-3">{selected.tasks.map((task) => <li key={task} className="flex items-center gap-3 text-sm"><Check className="size-4 text-primary" />{task}</li>)}</ul></div><Button onClick={() => { setSelected(null); onContinue(); }} className="mt-2">Ask Agent <ArrowRight /></Button></>}
         </DialogContent>
       </Dialog>
     </div>
