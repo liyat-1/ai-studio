@@ -184,3 +184,17 @@
 @utility num {
   font-variant-numeric: tabular-nums;
 }
+
+.agent-portrait { position: relative; border-radius: var(--radius); }
+.agent-portrait-image { position: absolute; max-width: none; width: 400%; height: 200%; object-fit: fill; }
+.portrait-0 { left: 0; top: 0; }
+.portrait-1 { left: -100%; top: 0; }
+.portrait-2 { left: -200%; top: 0; }
+.portrait-3 { left: -300%; top: 0; }
+.portrait-4 { left: 0; top: -100%; }
+.portrait-5 { left: -100%; top: -100%; }
+.portrait-6 { left: -200%; top: -100%; }
+.portrait-7 { left: -300%; top: -100%; }
+.team-introduction { animation: team-enter 350ms ease-out; }
+@keyframes team-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .team-introduction { animation: none; } .team-introduction * { transition: none; } }

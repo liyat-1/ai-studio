@@ -36,6 +36,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Manage and track your hotel guest outreach campaigns across text and email." },
       { property: "og:title", content: "Drip Campaigns — Directful" },
       { property: "og:description", content: "Manage and track your hotel guest outreach campaigns across text and email." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: CampaignsPage,

@@ -8,6 +8,8 @@ export const Route = createFileRoute("/audiences")({
       { name: "description", content: "Guest audiences used by your drip campaigns." },
       { property: "og:title", content: "Audiences — Directful" },
       { property: "og:description", content: "Guest audiences used by your drip campaigns." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AudiencesPage,
